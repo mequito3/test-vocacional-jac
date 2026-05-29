@@ -21,7 +21,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_DATABASE=u636084353_jac2000
 DB_USERNAME=u636084353_jac2000
-DB_PASSWORD="Jac2000."
+DB_PASSWORD=JacBolivia2026
 
 SESSION_DRIVER=file
 CACHE_DRIVER=file
@@ -50,9 +50,9 @@ echo ">> .env / .htaccess / cache OK"
   echo "exit=$?"
   echo ""
   echo "--- PDO host=localhost ---"
-  timeout 15 php -r 'try{new PDO("mysql:host=localhost;dbname=u636084353_jac2000","u636084353_jac2000","Jac2000.");echo "DB OK\n";}catch(Throwable $e){echo "DB ERROR: ".$e->getMessage()."\n";}' 2>&1
+  timeout 15 php -r 'try{new PDO("mysql:host=localhost;dbname=u636084353_jac2000","u636084353_jac2000","JacBolivia2026");echo "DB OK\n";}catch(Throwable $e){echo "DB ERROR: ".$e->getMessage()."\n";}' 2>&1
   echo "--- PDO host=127.0.0.1 ---"
-  timeout 15 php -r 'try{new PDO("mysql:host=127.0.0.1;dbname=u636084353_jac2000","u636084353_jac2000","Jac2000.");echo "DB OK\n";}catch(Throwable $e){echo "DB ERROR: ".$e->getMessage()."\n";}' 2>&1
+  timeout 15 php -r 'try{new PDO("mysql:host=127.0.0.1;dbname=u636084353_jac2000","u636084353_jac2000","JacBolivia2026");echo "DB OK\n";}catch(Throwable $e){echo "DB ERROR: ".$e->getMessage()."\n";}' 2>&1
   echo ""
   echo "--- migrate ---"
   timeout 40 php artisan migrate --force 2>&1
