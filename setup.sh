@@ -45,8 +45,8 @@ echo ">> .env / .htaccess / cache OK"
   echo "dir: $(pwd)"
   echo "php: $(php -v 2>&1 | head -1)"
   echo ""
-  echo "--- artisan --version ---"
-  timeout 25 php artisan --version 2>&1
+  echo "--- artisan --version (con errores visibles) ---"
+  timeout 25 php -d display_errors=1 -d error_reporting=E_ALL artisan --version 2>&1
   echo "exit=$?"
   echo ""
   echo "--- PDO host=localhost ---"
@@ -54,8 +54,8 @@ echo ">> .env / .htaccess / cache OK"
   echo "--- PDO host=127.0.0.1 ---"
   timeout 15 php -r 'try{new PDO("mysql:host=127.0.0.1;dbname=u636084353_jac2000","u636084353_jac2000","JacBolivia2000");echo "DB OK\n";}catch(Throwable $e){echo "DB ERROR: ".$e->getMessage()."\n";}' 2>&1
   echo ""
-  echo "--- migrate ---"
-  timeout 40 php artisan migrate --force 2>&1
+  echo "--- migrate (con errores visibles) ---"
+  timeout 60 php -d display_errors=1 -d error_reporting=E_ALL artisan migrate --force 2>&1
   echo "exit=$?"
   echo ""
   echo "--- laravel.log (tail) ---"
