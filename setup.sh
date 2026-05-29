@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deploy + diagnostico del Test Vocacional CHASIDE en Hostinger.
+# Deploy + diagnostico: escribe el resultado en public/diag.txt (accesible por web).
 
 DOCROOT=~/domains/jac2000.americolabs.com/public_html
 cd "$DOCROOT" || { echo "!! No existe $DOCROOT"; exit 1; }
@@ -37,27 +37,34 @@ cat > .htaccess <<'HTEOF'
 HTEOF
 
 rm -f bootstrap/cache/*.php
-echo ">> .env / .htaccess / cache  OK"
+echo ">> .env / .htaccess / cache OK"
 
-echo ""
-echo ">> ARTISAN VERSION:"
-php artisan --version 2>&1 | tail -5
+# === Diagnostico hacia public/diag.txt (lo leo por web) ===
+{
+  echo "=== DIAG $(date -u) ==="
+  echo "dir: $(pwd)"
+  echo "php: $(php -v 2>&1 | head -1)"
+  echo ""
+  echo "--- artisan --version ---"
+  timeout 25 php artisan --version 2>&1
+  echo "exit=$?"
+  echo ""
+  echo "--- PDO host=localhost ---"
+  timeout 15 php -r 'try{new PDO("mysql:host=localhost;dbname=u636084353_jac2000","u636084353_jac2000","Jac2000.");echo "DB OK\n";}catch(Throwable $e){echo "DB ERROR: ".$e->getMessage()."\n";}' 2>&1
+  echo "--- PDO host=127.0.0.1 ---"
+  timeout 15 php -r 'try{new PDO("mysql:host=127.0.0.1;dbname=u636084353_jac2000","u636084353_jac2000","Jac2000.");echo "DB OK\n";}catch(Throwable $e){echo "DB ERROR: ".$e->getMessage()."\n";}' 2>&1
+  echo ""
+  echo "--- migrate ---"
+  timeout 40 php artisan migrate --force 2>&1
+  echo "exit=$?"
+  echo ""
+  echo "--- laravel.log (tail) ---"
+  tail -25 storage/logs/laravel.log 2>&1
+  echo ""
+  echo "=== END ==="
+} > public/diag.txt 2>&1
 
-echo ""
-echo ">> TEST DB host=localhost:"
-php -r 'try{new PDO("mysql:host=localhost;dbname=u636084353_jac2000","u636084353_jac2000","Jac2000.");echo "   DB OK\n";}catch(Throwable $e){echo "   DB ERROR: ".$e->getMessage()."\n";}'
-
-echo ">> TEST DB host=127.0.0.1:"
-php -r 'try{new PDO("mysql:host=127.0.0.1;dbname=u636084353_jac2000","u636084353_jac2000","Jac2000.");echo "   DB OK\n";}catch(Throwable $e){echo "   DB ERROR: ".$e->getMessage()."\n";}'
-
-echo ""
-echo ">> MIGRATE:"
-php artisan migrate --force 2>&1 | tail -30
-
-echo ""
-echo ">> LOG (ultimas lineas de laravel.log):"
-tail -15 storage/logs/laravel.log 2>&1
-
+chmod 644 public/diag.txt 2>/dev/null
 chmod -R 775 storage bootstrap/cache 2>/dev/null
-echo ""
+echo ">> Diagnostico guardado. Abre: https://jac2000.americolabs.com/diag.txt"
 echo "===FIN==="
