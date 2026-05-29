@@ -1,12 +1,11 @@
 #!/bin/bash
-# Despliegue del Test Vocacional CHASIDE en Hostinger (verboso, sin set -e).
+# Deploy + diagnostico del Test Vocacional CHASIDE en Hostinger.
 
 DOCROOT=~/domains/jac2000.americolabs.com/public_html
 cd "$DOCROOT" || { echo "!! No existe $DOCROOT"; exit 1; }
 echo ">> Carpeta: $(pwd)"
-echo ">> PHP: $(php -v | head -1)"
 
-# 1. .env de produccion (con APP_KEY valida)
+# .env de produccion
 cat > .env <<'ENVEOF'
 APP_NAME="Test Vocacional CHASIDE"
 APP_ENV=production
@@ -29,28 +28,36 @@ CACHE_DRIVER=file
 QUEUE_CONNECTION=sync
 MAIL_MAILER=log
 ENVEOF
-echo ">> .env creado"
 
-# 2. .htaccess que envia todo a public/
 cat > .htaccess <<'HTEOF'
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
 HTEOF
-echo ">> .htaccess creado"
 
-# 3. Limpiar TODA cache compilada
 rm -f bootstrap/cache/*.php
-echo ">> cache limpia"
-
-# 4. Probar conexion a la base (muestra el error si lo hay)
-echo ">> ===== PRUEBA DE CONEXION DB ====="
-php artisan migrate --force 2>&1 | tail -40
-echo ">> ================================="
-
-# 5. Permisos
-chmod -R 775 storage bootstrap/cache 2>/dev/null
+echo ">> .env / .htaccess / cache  OK"
 
 echo ""
-echo "===FIN=== (si arriba dice 'Nothing to migrate' o lista migraciones DONE, las tablas estan OK)"
+echo ">> ARTISAN VERSION:"
+php artisan --version 2>&1 | tail -5
+
+echo ""
+echo ">> TEST DB host=localhost:"
+php -r 'try{new PDO("mysql:host=localhost;dbname=u636084353_jac2000","u636084353_jac2000","Jac2000.");echo "   DB OK\n";}catch(Throwable $e){echo "   DB ERROR: ".$e->getMessage()."\n";}'
+
+echo ">> TEST DB host=127.0.0.1:"
+php -r 'try{new PDO("mysql:host=127.0.0.1;dbname=u636084353_jac2000","u636084353_jac2000","Jac2000.");echo "   DB OK\n";}catch(Throwable $e){echo "   DB ERROR: ".$e->getMessage()."\n";}'
+
+echo ""
+echo ">> MIGRATE:"
+php artisan migrate --force 2>&1 | tail -30
+
+echo ""
+echo ">> LOG (ultimas lineas de laravel.log):"
+tail -15 storage/logs/laravel.log 2>&1
+
+chmod -R 775 storage bootstrap/cache 2>/dev/null
+echo ""
+echo "===FIN==="
