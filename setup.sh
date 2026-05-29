@@ -39,6 +39,21 @@ HTEOF
 rm -f bootstrap/cache/*.php
 echo ">> .env / .htaccess / cache OK"
 
+# Reparar vendor: el del zip llego incompleto. Usamos el de ~/jac (composer install limpio).
+if [ ! -f vendor/symfony/deprecation-contracts/function.php ] || [ ! -f vendor/autoload.php ]; then
+  echo ">> vendor incompleto -> reemplazando con el de ~/jac"
+  if [ -f ~/jac/vendor/symfony/deprecation-contracts/function.php ]; then
+    rm -rf vendor
+    cp -r ~/jac/vendor ./vendor
+    echo ">> vendor reemplazado desde ~/jac"
+  else
+    echo ">> ~/jac/vendor tambien incompleto -> composer install"
+    composer install --no-dev --optimize-autoloader 2>&1 | tail -5
+  fi
+else
+  echo ">> vendor OK"
+fi
+
 # === Diagnostico hacia public/diag.txt (lo leo por web) ===
 {
   echo "=== DIAG $(date -u) ==="
