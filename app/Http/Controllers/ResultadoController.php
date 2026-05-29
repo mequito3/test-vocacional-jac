@@ -110,7 +110,7 @@ class ResultadoController extends Controller
             'ordenAreas' => Chaside::ORDEN_AREAS,
             'principal'  => $resultado->area_principal,
             'secundaria' => $resultado->area_secundaria,
-        ])->setPaper('a4', 'portrait');
+        ])->setPaper('letter', 'portrait');
 
         $slug = \Illuminate\Support\Str::slug($resultado->estudiante->nombre_completo);
 

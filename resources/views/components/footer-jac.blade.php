@@ -5,7 +5,7 @@
       <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gold-500/20 blur-2xl"></div>
       <div class="relative grid gap-6 sm:grid-cols-2 items-start">
         <div>
-          <p class="font-display font-bold text-xl">Instituto Técnico Superior JAC Boliviano 2000</p>
+          <p class="font-display font-bold text-xl">JAC Boliviano 2000</p>
           <p class="text-sm text-white/70 mt-2 leading-relaxed">
             Av. San Martín esq. Brasil, Edif. Pruber 901, 2do Piso<br>
             Cochabamba — Bolivia

@@ -35,7 +35,7 @@
 <div class="frame"><div class="frame-in">
     <div class="center">
         @if($hasLogo)<img class="logo" src="{{ $logo }}">@endif
-        <div class="inst">Instituto Técnico Superior JAC Boliviano 2000</div>
+        <div class="inst">JAC Boliviano 2000</div>
         <div class="rule"></div>
         <div class="kicker">Test de Orientación Vocacional · Método CHASIDE</div>
         <div class="h1">Informe de Resultados</div>

@@ -28,7 +28,7 @@
 <body>
 <div class="side">
     @if($hasLogo)<img class="logo" src="{{ $logo }}">@endif
-    <div class="inst">Instituto Técnico Superior<br>JAC Boliviano 2000</div>
+    <div class="inst">JAC Boliviano 2000</div>
     <div class="lbl">Estudiante</div>
     <div class="val">{{ $estudiante->nombre_completo }}</div>
     <div class="lbl">Fecha</div>
