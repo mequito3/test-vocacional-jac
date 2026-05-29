@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-<div class="mx-auto max-w-3xl px-4 sm:px-6 pt-10 pb-4">
+<x-container size="form" class="pt-10 pb-4">
 
   {{-- Stepper --}}
   <div class="rise d1 flex items-center justify-center gap-2 sm:gap-3 mb-7">
@@ -106,5 +106,5 @@
       </button>
     </div>
   </form>
-</div>
+</x-container>
 @endsection

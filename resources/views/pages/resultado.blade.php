@@ -17,7 +17,7 @@
 @endphp
 
 @section('content')
-<div class="mx-auto max-w-5xl px-4 sm:px-6 pt-10 pb-4">
+<x-container class="pt-10 pb-4">
 
   {{-- Encabezado --}}
   <div class="rise d1 text-center mb-7">
@@ -29,16 +29,27 @@
     <p class="text-slate-500 mt-1 text-sm">Test concluido el {{ $resultado->created_at->format('d/m/Y') }}</p>
   </div>
 
-  {{-- Area dominante (hero) --}}
-  <div class="rise d2 rounded-4xl p-8 sm:p-10 text-white shadow-float relative overflow-hidden mb-6"
-       style="background: {{ $areaP['color'] }};">
-    <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
-    <div class="relative flex flex-col sm:flex-row sm:items-center gap-6">
-      <span class="grid place-items-center w-20 h-20 rounded-3xl bg-white/15 backdrop-blur font-display font-extrabold text-4xl shrink-0">{{ $principal }}</span>
-      <div>
-        <p class="text-xs uppercase tracking-[0.2em] text-white/70 font-semibold">Tu área vocacional dominante</p>
-        <h2 class="font-display font-bold text-3xl sm:text-4xl mt-1.5 leading-tight">{{ $areaP['nombre'] }}</h2>
-        <p class="text-white/80 text-sm mt-2">Inclinación secundaria: <span class="font-semibold text-white">{{ $areaS['nombre'] }}</span></p>
+  {{-- Area dominante (tarjeta elegante, color como acento) --}}
+  <div class="rise d2 card rounded-3xl shadow-card p-7 sm:p-9 mb-6 relative overflow-hidden">
+    {{-- Barra de acento lateral con el color del area --}}
+    <div class="absolute left-0 inset-y-0 w-1.5" style="background: {{ $areaP['color'] }}"></div>
+    {{-- Letra gigante de marca de agua --}}
+    <span class="absolute -right-3 -top-10 font-display font-extrabold text-[180px] leading-none select-none pointer-events-none"
+          style="color: {{ $areaP['color'] }}; opacity:.07">{{ $principal }}</span>
+
+    <div class="relative flex items-center gap-5">
+      <span class="grid place-items-center w-20 h-20 rounded-2xl text-white font-display font-extrabold text-4xl shadow-btn shrink-0"
+            style="background: {{ $areaP['color'] }}">{{ $principal }}</span>
+      <div class="min-w-0">
+        <span class="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] font-bold px-3 py-1 rounded-full"
+              style="background: {{ $areaP['color'] }}1a; color: {{ $areaP['color'] }}">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 1l2.6 5.3 5.9.9-4.2 4.1 1 5.8L10 14.9 4.7 17.1l1-5.8L1.5 7.2l5.9-.9z"/></svg>
+          Área vocacional dominante
+        </span>
+        <h2 class="font-display font-extrabold text-ink text-3xl sm:text-4xl mt-2 leading-tight">{{ $areaP['nombre'] }}</h2>
+        <p class="text-slate-500 text-sm mt-1.5">Inclinación secundaria:
+          <b style="color: {{ $areaS['color'] }}">{{ $areaS['nombre'] }}</b>
+        </p>
       </div>
     </div>
   </div>
@@ -118,7 +129,7 @@
       Realizar otro test
     </a>
   </div>
-</div>
+</x-container>
 @endsection
 
 @push('head')

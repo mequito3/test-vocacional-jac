@@ -3,7 +3,7 @@
 @section('title', 'Inicio')
 
 @section('content')
-<div class="mx-auto max-w-6xl px-4 sm:px-6">
+<x-container>
 
   {{-- HERO --}}
   <section class="pt-10 sm:pt-16 pb-10 grid lg:grid-cols-[1.1fr_.9fr] gap-10 items-center">
@@ -96,5 +96,5 @@
       @endforeach
     </div>
   </section>
-</div>
+</x-container>
 @endsection

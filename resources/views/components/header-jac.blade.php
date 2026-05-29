@@ -1,6 +1,6 @@
 {{-- Cabecera minimalista (mismo criterio que el footer: identidad izq. + dato der.) --}}
 <header class="sticky top-0 z-30 bg-white/75 backdrop-blur-md border-b border-slate-200/70">
-  <div class="mx-auto max-w-4xl px-5 sm:px-6 h-16 flex items-center justify-between gap-4">
+  <x-container class="h-16 flex items-center justify-between gap-4">
     <a href="{{ route('welcome') }}" class="flex items-center gap-3">
       @if (file_exists(public_path('images/logo-jac.png')))
         <img src="{{ asset('images/logo-jac.png') }}" alt="JAC Boliviano 2000" class="h-9 w-9 rounded-full object-contain">
@@ -13,5 +13,5 @@
       </span>
     </a>
     <span class="hidden sm:block text-[11px] uppercase tracking-[0.22em] text-slate-400">Método CHASIDE</span>
-  </div>
+  </x-container>
 </header>

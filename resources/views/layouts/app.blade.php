@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="icon" type="image/png" href="{{ asset('images/logo-jac.png') }}">
+<link rel="apple-touch-icon" href="{{ asset('images/logo-jac.png') }}">
 <title>@yield('title', 'Test Vocacional CHASIDE') — JAC Boliviano 2000</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
