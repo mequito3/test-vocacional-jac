@@ -5,7 +5,7 @@
       <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gold-500/20 blur-2xl"></div>
       <div class="relative grid gap-6 sm:grid-cols-2 items-start">
         <div>
-          <p class="font-display font-bold text-xl">Instituto Técnico Superior JAC Bolivia 2000</p>
+          <p class="font-display font-bold text-xl">Instituto Técnico Superior JAC Boliviano 2000</p>
           <p class="text-sm text-white/70 mt-2 leading-relaxed">
             Av. San Martín esq. Brasil, Edif. Pruber 901, 2do Piso<br>
             Cochabamba — Bolivia
@@ -24,7 +24,7 @@
         </div>
       </div>
       <div class="relative mt-7 pt-5 border-t border-white/10 text-[11px] text-white/45">
-        © {{ date('Y') }} JAC Bolivia 2000 · Departamento de Orientación · Método CHASIDE
+        © {{ date('Y') }} JAC Boliviano 2000 · Departamento de Orientación · Método CHASIDE
       </div>
     </div>
   </div>

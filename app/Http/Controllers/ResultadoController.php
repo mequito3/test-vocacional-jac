@@ -93,12 +93,13 @@ class ResultadoController extends Controller
 
         // Estilo de hoja elegible: certificado | reporte | profesional.
         $estilos = [
+            'minimalista' => 'pdf.v3_minimal',
             'certificado' => 'pdf.v1_certificado',
             'reporte'     => 'pdf.v2_sidebar',
             'profesional' => 'pdf.v4_pro',
         ];
-        $estilo = $request->query('estilo', 'profesional');
-        $vista = $estilos[$estilo] ?? $estilos['profesional'];
+        $estilo = $request->query('estilo', 'minimalista');
+        $vista = $estilos[$estilo] ?? $estilos['minimalista'];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($vista, [
             'resultado'  => $resultado,

@@ -105,36 +105,15 @@
     </div>
   </div>
 
-  {{-- Descargar hoja en PDF (3 estilos) --}}
-  <div class="rise d6 card rounded-3xl shadow-card p-6 sm:p-7 mt-8">
-    <div class="flex items-center gap-2.5 mb-1">
-      <svg class="w-5 h-5 text-navy-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M4 6a2 2 0 012-2h8l6 6v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
-      <h3 class="font-display font-bold text-ink text-lg">Descarga tu hoja en PDF</h3>
-    </div>
-    <p class="text-sm text-slate-500 mb-4">Elige el formato que prefieras.</p>
-    <div class="grid sm:grid-cols-3 gap-3">
-      <a href="{{ route('resultado.pdf', ['id' => $resultado->id, 'estilo' => 'profesional']) }}"
-         class="flex items-center justify-center gap-2 rounded-2xl bg-navy-700 hover:bg-navy-600 text-white font-semibold px-5 py-3.5 shadow-btn hover:-translate-y-0.5 transition-all">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
-        Profesional
-      </a>
-      <a href="{{ route('resultado.pdf', ['id' => $resultado->id, 'estilo' => 'certificado']) }}"
-         class="flex items-center justify-center gap-2 rounded-2xl border-2 border-navy-700 text-navy-700 hover:bg-navy-700 hover:text-white font-semibold px-5 py-3.5 transition-all">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15a4 4 0 100-8 4 4 0 000 8zm0 0v6l-2-1.5L8 21M16 21l-2-1.5"/></svg>
-        Certificado
-      </a>
-      <a href="{{ route('resultado.pdf', ['id' => $resultado->id, 'estilo' => 'reporte']) }}"
-         class="flex items-center justify-center gap-2 rounded-2xl border-2 border-navy-700 text-navy-700 hover:bg-navy-700 hover:text-white font-semibold px-5 py-3.5 transition-all">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6m3 6V7m3 10v-3M4 5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"/></svg>
-        Reporte
-      </a>
-    </div>
-  </div>
-
-  {{-- Otro test --}}
-  <div class="rise d6 text-center mt-6">
+  {{-- Acciones --}}
+  <div class="rise d6 flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+    <a href="{{ route('resultado.pdf', $resultado->id) }}"
+       class="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-2xl bg-navy-700 hover:bg-navy-600 text-white font-semibold px-8 py-4 shadow-btn hover:-translate-y-0.5 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M4 6a2 2 0 012-2h8l6 6v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
+      Descargar mi hoja en PDF
+    </a>
     <a href="{{ route('reiniciar') }}"
-       class="inline-flex items-center justify-center gap-2 text-slate-500 hover:text-navy-700 font-semibold px-6 py-3 transition-all">
+       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-navy-700 text-navy-700 hover:bg-navy-700 hover:text-white font-semibold px-8 py-4 transition-all">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       Realizar otro test
     </a>

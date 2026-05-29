@@ -35,7 +35,7 @@
 <div class="frame"><div class="frame-in">
     <div class="center">
         @if($hasLogo)<img class="logo" src="{{ $logo }}">@endif
-        <div class="inst">Instituto Técnico Superior JAC Bolivia 2000</div>
+        <div class="inst">Instituto Técnico Superior JAC Boliviano 2000</div>
         <div class="rule"></div>
         <div class="kicker">Test de Orientación Vocacional · Método CHASIDE</div>
         <div class="h1">Informe de Resultados</div>
@@ -68,7 +68,7 @@
     </table>
 
     <table class="foot"><tr>
-        <td><div class="sign">Departamento de Orientación · JAC Bolivia 2000</div><div class="rm">RM. 2450/17 · Tel. 4553737 · 71443907 · {{ $resultado->created_at->format('d/m/Y') }}</div></td>
+        <td><div class="sign">Departamento de Orientación · JAC Boliviano 2000</div><div class="rm">RM. 2450/17 · Tel. 4553737 · 71443907 · {{ $resultado->created_at->format('d/m/Y') }}</div></td>
         <td class="seal">@if($hasLogo)<img src="{{ $logo }}">@endif</td>
     </tr></table>
 </div></div>

@@ -53,7 +53,7 @@
 <div class="topbar">
     <table><tr>
         <td class="logo">@if($hasLogo)<img src="{{ $logo }}">@endif</td>
-        <td class="t"><div class="a">Instituto Técnico Superior JAC Bolivia 2000</div><div class="b">Orientación Vocacional · Método CHASIDE</div></td>
+        <td class="t"><div class="a">Instituto Técnico Superior JAC Boliviano 2000</div><div class="b">Orientación Vocacional · Método CHASIDE</div></td>
         <td class="r">Informe de Resultados<br>{{ $resultado->created_at->format('d/m/Y') }}</td>
     </tr></table>
 </div>
@@ -112,6 +112,6 @@
 </div>
 
 <div class="footbar">
-    INSTITUTO TÉCNICO SUPERIOR JAC BOLIVIA 2000 · Av. San Martín esq. Brasil, Ed. Pruber 901, 2do Piso · Cochabamba — Bolivia · Tel. 4553737 · 71443907 · 61624258 · RM. 2450/17
+    INSTITUTO TÉCNICO SUPERIOR JAC BOLIVIANO 2000 · Av. San Martín esq. Brasil, Ed. Pruber 901, 2do Piso · Cochabamba — Bolivia · Tel. 4553737 · 71443907 · 61624258 · RM. 2450/17
 </div>
 </body></html>
