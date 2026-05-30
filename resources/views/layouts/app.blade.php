@@ -69,10 +69,13 @@
   .card{background:rgba(255,255,255,.82);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.7)}
 </style>
 </head>
-<body class="bg-atmos text-ink min-h-screen flex flex-col overflow-x-hidden">
+<body class="@hasSection('fondoPlano') bg-slate-50 @else bg-atmos @endif text-ink min-h-screen flex flex-col overflow-x-hidden">
 
+  @hasSection('fondoPlano')
+  @else
   <div class="blob floaty" style="width:300px;height:300px;background:#ffce7a;top:-60px;right:-40px"></div>
   <div class="blob" style="width:340px;height:340px;background:#7fa9e6;bottom:-120px;left:-80px"></div>
+  @endif
 
   <div class="relative z-10 flex flex-col min-h-screen">
     <x-header-jac />

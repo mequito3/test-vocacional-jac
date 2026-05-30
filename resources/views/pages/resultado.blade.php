@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Tu resultado')
+@section('fondoPlano', '1')
 
 @php
     $areaP = $areas[$principal];
@@ -21,19 +22,16 @@
 
     {{-- 1. Encabezado --}}
     <header class="rise d1 text-center">
-        <span class="inline-block rounded-full bg-white border border-slate-200/70 shadow-card text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 px-4 py-1.5">Informe de Orientación Vocacional</span>
+        <span class="inline-block rounded-full bg-white border border-slate-200/70 shadow-sm text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 px-4 py-1.5">Informe de Orientación Vocacional</span>
         <h1 class="font-display font-extrabold text-ink text-4xl sm:text-5xl tracking-tight mt-4">{{ $estudiante->nombre_completo }}</h1>
         <p class="text-sm text-slate-400 mt-2">CHASIDE · {{ $resultado->created_at->format('d/m/Y') }}</p>
     </header>
 
     {{-- 2. Área dominante --}}
-    <section class="rise d2 mt-8 rounded-3xl bg-white border border-slate-200/70 shadow-card p-7 sm:p-8 relative overflow-hidden"
-             style="background: linear-gradient(120deg, {{ $areaP['color'] }}12, #ffffff 55%)">
+    <section class="rise d2 mt-8 rounded-2xl bg-white border border-slate-200 shadow-sm p-7 sm:p-8 relative overflow-hidden">
         <div class="absolute left-0 inset-y-0 w-1.5" style="background: {{ $areaP['color'] }}"></div>
-        <span class="absolute -right-3 -top-10 font-display font-extrabold text-[170px] leading-none select-none pointer-events-none"
-              style="color: {{ $areaP['color'] }}; opacity:.06">{{ $principal }}</span>
         <div class="relative flex items-center gap-5">
-            <span class="grid place-items-center w-20 h-20 rounded-2xl text-white font-display font-extrabold text-4xl shrink-0 shadow-btn"
+            <span class="grid place-items-center w-20 h-20 rounded-xl text-white font-display font-extrabold text-4xl shrink-0"
                   style="background: {{ $areaP['color'] }}">{{ $principal }}</span>
             <div class="min-w-0">
                 <span class="text-[11px] uppercase tracking-[0.18em] font-bold" style="color: {{ $areaP['color'] }}">Área vocacional dominante</span>
@@ -48,7 +46,7 @@
     </section>
 
     {{-- 3. Gráfico --}}
-    <section class="rise d3 mt-6 rounded-3xl bg-white border border-slate-200/70 shadow-card p-6 sm:p-7">
+    <section class="rise d3 mt-6 rounded-2xl bg-white border border-slate-200 shadow-sm p-6 sm:p-7">
         <h3 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Puntaje por área</h3>
         <div class="relative h-72 sm:h-80 mt-4"><canvas id="barChaside"></canvas></div>
         <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 pt-5 border-t border-slate-100">
@@ -64,7 +62,7 @@
 
     {{-- 4. Intereses / Aptitudes --}}
     <section class="rise d4 mt-6 grid sm:grid-cols-2 gap-6">
-        <div class="rounded-3xl bg-white border border-slate-200/70 shadow-card p-6 sm:p-7">
+        <div class="rounded-2xl bg-white border border-slate-200 shadow-sm p-6 sm:p-7">
             <h3 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 mb-4">Tus intereses</h3>
             <div class="flex flex-wrap gap-2">
                 @foreach ($areaP['intereses'] as $item)
@@ -72,7 +70,7 @@
                 @endforeach
             </div>
         </div>
-        <div class="rounded-3xl bg-white border border-slate-200/70 shadow-card p-6 sm:p-7">
+        <div class="rounded-2xl bg-white border border-slate-200 shadow-sm p-6 sm:p-7">
             <h3 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 mb-4">Tus aptitudes</h3>
             <div class="flex flex-wrap gap-2">
                 @foreach ($areaP['aptitudes'] as $item)
@@ -83,7 +81,7 @@
     </section>
 
     {{-- 5. Carreras --}}
-    <section class="rise d5 mt-6 rounded-3xl bg-white border border-slate-200/70 shadow-card p-6 sm:p-7">
+    <section class="rise d5 mt-6 rounded-2xl bg-white border border-slate-200 shadow-sm p-6 sm:p-7">
         <h3 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Carreras sugeridas</h3>
         <p class="text-sm text-slate-400 mt-1 mb-4">Según tu perfil en {{ $areaP['nombre'] }}</p>
         <div class="grid sm:grid-cols-2 gap-x-8 gap-y-1">
