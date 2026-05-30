@@ -80,7 +80,7 @@
     <template x-if="contestadas < total">
       <p class="text-sm text-slate-500">
         Te faltan <span class="font-bold text-navy-700" x-text="total - contestadas"></span> preguntas.
-        <button type="button" @click="irAPendiente()" class="text-gold-600 font-semibold underline underline-offset-2 ml-1">Ir a la pendiente</button>
+        <button type="button" @click="irAPendiente()" class="text-gold-600 font-semibold underline underline-offset-2 ml-1">Completar las que faltan</button>
       </p>
     </template>
     <form method="POST" action="{{ route('resultado.calcular') }}" x-show="contestadas === total" @submit="limpiarGuardado()">
@@ -144,17 +144,28 @@
                 el.classList.add('q-anim');
             },
             get contestadas() { return Object.keys(this.answers).length; },
+            // Siguiente pregunta SIN responder, empezando despues de la actual y dando la vuelta.
+            // Devuelve -1 si ya estan todas respondidas.
+            proximaPendiente() {
+                for (let i = 1; i <= this.total; i++) {
+                    const idx = (this.current + i) % this.total;
+                    if (!(this.preguntas[idx].n in this.answers)) return idx;
+                }
+                return -1;
+            },
             responder(valor) {
                 this.answers[this.preguntas[this.current].n] = valor;
                 this.persistir();
-                if (this.current < this.total - 1) {
-                    setTimeout(() => { if (this.current < this.total - 1) this.current++; }, 400);
+                // Salta automaticamente a la siguiente pendiente (rellena huecos sin reclics).
+                const siguiente = this.proximaPendiente();
+                if (siguiente !== -1) {
+                    setTimeout(() => { this.current = siguiente; }, 400);
                 }
             },
             anterior() { if (this.current > 0) this.current--; },
             siguiente() { if (this.current < this.total - 1) this.current++; },
             irAPendiente() {
-                const idx = this.preguntas.findIndex(p => !(p.n in this.answers));
+                const idx = this.proximaPendiente();
                 if (idx !== -1) this.current = idx;
             },
         }));
