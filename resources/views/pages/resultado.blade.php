@@ -20,30 +20,35 @@
 <x-container class="py-10 max-w-4xl">
 
     {{-- 1. Encabezado --}}
-    <header class="text-center">
-        <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Informe de Orientación Vocacional</span>
-        <h1 class="font-display font-extrabold text-ink text-4xl sm:text-5xl tracking-tight mt-2">{{ $estudiante->nombre_completo }}</h1>
+    <header class="rise d1 text-center">
+        <span class="inline-block rounded-full bg-white border border-slate-200/70 shadow-card text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500 px-4 py-1.5">Informe de Orientación Vocacional</span>
+        <h1 class="font-display font-extrabold text-ink text-4xl sm:text-5xl tracking-tight mt-4">{{ $estudiante->nombre_completo }}</h1>
         <p class="text-sm text-slate-400 mt-2">CHASIDE · {{ $resultado->created_at->format('d/m/Y') }}</p>
     </header>
 
     {{-- 2. Área dominante --}}
-    <section class="mt-8 rounded-3xl bg-white border border-slate-200/70 p-7 sm:p-8 relative overflow-hidden">
+    <section class="rise d2 mt-8 rounded-3xl bg-white border border-slate-200/70 shadow-card p-7 sm:p-8 relative overflow-hidden"
+             style="background: linear-gradient(120deg, {{ $areaP['color'] }}12, #ffffff 55%)">
         <div class="absolute left-0 inset-y-0 w-1.5" style="background: {{ $areaP['color'] }}"></div>
         <span class="absolute -right-3 -top-10 font-display font-extrabold text-[170px] leading-none select-none pointer-events-none"
               style="color: {{ $areaP['color'] }}; opacity:.06">{{ $principal }}</span>
         <div class="relative flex items-center gap-5">
-            <span class="grid place-items-center w-20 h-20 rounded-2xl text-white font-display font-extrabold text-4xl shrink-0"
+            <span class="grid place-items-center w-20 h-20 rounded-2xl text-white font-display font-extrabold text-4xl shrink-0 shadow-btn"
                   style="background: {{ $areaP['color'] }}">{{ $principal }}</span>
             <div class="min-w-0">
                 <span class="text-[11px] uppercase tracking-[0.18em] font-bold" style="color: {{ $areaP['color'] }}">Área vocacional dominante</span>
                 <h2 class="font-display font-extrabold text-ink text-3xl sm:text-4xl leading-tight mt-1">{{ $areaP['nombre'] }}</h2>
                 <p class="text-slate-500 text-sm mt-1.5">Inclinación secundaria: <b style="color: {{ $areaS['color'] }}">{{ $areaS['nombre'] }}</b></p>
             </div>
+            <div class="hidden sm:flex flex-col items-center justify-center ml-auto pl-6 shrink-0 border-l border-slate-200/70">
+                <span class="font-display font-extrabold text-5xl leading-none" style="color: {{ $areaP['color'] }}">{{ $puntajes[$principal] }}</span>
+                <span class="text-[11px] uppercase tracking-[0.15em] text-slate-400 font-semibold mt-1.5">puntos</span>
+            </div>
         </div>
     </section>
 
     {{-- 3. Gráfico --}}
-    <section class="mt-6 rounded-3xl bg-white border border-slate-200/70 p-6 sm:p-7">
+    <section class="rise d3 mt-6 rounded-3xl bg-white border border-slate-200/70 shadow-card p-6 sm:p-7">
         <h3 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Puntaje por área</h3>
         <div class="relative h-72 sm:h-80 mt-4"><canvas id="barChaside"></canvas></div>
         <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 pt-5 border-t border-slate-100">
@@ -58,8 +63,8 @@
     </section>
 
     {{-- 4. Intereses / Aptitudes --}}
-    <section class="mt-6 grid sm:grid-cols-2 gap-6">
-        <div class="rounded-3xl bg-white border border-slate-200/70 p-6 sm:p-7">
+    <section class="rise d4 mt-6 grid sm:grid-cols-2 gap-6">
+        <div class="rounded-3xl bg-white border border-slate-200/70 shadow-card p-6 sm:p-7">
             <h3 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 mb-4">Tus intereses</h3>
             <div class="flex flex-wrap gap-2">
                 @foreach ($areaP['intereses'] as $item)
@@ -67,7 +72,7 @@
                 @endforeach
             </div>
         </div>
-        <div class="rounded-3xl bg-white border border-slate-200/70 p-6 sm:p-7">
+        <div class="rounded-3xl bg-white border border-slate-200/70 shadow-card p-6 sm:p-7">
             <h3 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400 mb-4">Tus aptitudes</h3>
             <div class="flex flex-wrap gap-2">
                 @foreach ($areaP['aptitudes'] as $item)
@@ -78,7 +83,7 @@
     </section>
 
     {{-- 5. Carreras --}}
-    <section class="mt-6 rounded-3xl bg-white border border-slate-200/70 p-6 sm:p-7">
+    <section class="rise d5 mt-6 rounded-3xl bg-white border border-slate-200/70 shadow-card p-6 sm:p-7">
         <h3 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Carreras sugeridas</h3>
         <p class="text-sm text-slate-400 mt-1 mb-4">Según tu perfil en {{ $areaP['nombre'] }}</p>
         <div class="grid sm:grid-cols-2 gap-x-8 gap-y-1">
@@ -92,7 +97,7 @@
     </section>
 
     {{-- 6. Acciones --}}
-    <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+    <div class="rise d6 mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
         <a href="{{ route('resultado.pdf', $resultado->id) }}"
            class="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 rounded-2xl bg-ink hover:bg-navy-700 text-white font-semibold px-8 py-4 transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M4 6a2 2 0 012-2h8l6 6v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
