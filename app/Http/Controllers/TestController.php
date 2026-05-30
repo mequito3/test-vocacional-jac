@@ -49,7 +49,8 @@ class TestController extends Controller
         }
 
         return view('pages.test', [
-            'preguntas' => Chaside::PREGUNTAS,
+            'preguntas'    => Chaside::PREGUNTAS,
+            'estudianteId' => $request->session()->get('estudiante_id'),
         ]);
     }
 

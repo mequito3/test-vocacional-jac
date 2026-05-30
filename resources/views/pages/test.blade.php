@@ -16,7 +16,7 @@
 @endphp
 
 @section('content')
-<div class="mx-auto max-w-2xl px-4 sm:px-6 pt-10 pb-4" x-data="chaside({{ Illuminate\Support\Js::from($listaPreguntas) }})" x-cloak>
+<div class="mx-auto max-w-2xl px-4 sm:px-6 pt-10 pb-4" x-data="chaside({{ Illuminate\Support\Js::from($listaPreguntas) }}, {{ $estudianteId }})" x-cloak>
 
   {{-- Barra superior: contador + progreso --}}
   <div class="rise d1 flex items-center justify-between mb-3">
@@ -83,7 +83,7 @@
         <button type="button" @click="irAPendiente()" class="text-gold-600 font-semibold underline underline-offset-2 ml-1">Ir a la pendiente</button>
       </p>
     </template>
-    <form method="POST" action="{{ route('resultado.calcular') }}" x-show="contestadas === total">
+    <form method="POST" action="{{ route('resultado.calcular') }}" x-show="contestadas === total" @submit="limpiarGuardado()">
       @csrf
       <template x-for="p in preguntas" :key="p.n">
         <input type="hidden" :name="`respuestas[${p.n}]`" :value="answers[p.n] ? 1 : 0">
@@ -103,14 +103,38 @@
 @push('scripts')
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('chaside', (listaPreguntas) => ({
+        Alpine.data('chaside', (listaPreguntas, estudianteId) => ({
             preguntas: listaPreguntas,
             total: listaPreguntas.length,
             current: 0,
             answers: {},
+            storageKey: 'chaside_test_' + estudianteId,
             init() {
-                // Reanima la tarjeta cada vez que cambia la pregunta (feedback visual claro)
-                this.$watch('current', () => this.flashPregunta());
+                this.restaurar();   // recupera el avance si el alumno recargo la pagina
+                // Reanima la tarjeta y guarda el avance cada vez que cambia la pregunta
+                this.$watch('current', () => { this.flashPregunta(); this.persistir(); });
+            },
+            restaurar() {
+                try {
+                    // En una compu compartida, descarta el avance de otros estudiantes
+                    Object.keys(localStorage).forEach(k => {
+                        if (k.startsWith('chaside_test_') && k !== this.storageKey) localStorage.removeItem(k);
+                    });
+                    const data = JSON.parse(localStorage.getItem(this.storageKey) || 'null');
+                    if (!data) return;
+                    this.answers = data.answers || {};
+                    if (Number.isInteger(data.current) && data.current >= 0 && data.current < this.total) {
+                        this.current = data.current;
+                    }
+                } catch (e) { /* localStorage no disponible: el test funciona igual, solo sin recuperacion */ }
+            },
+            persistir() {
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify({ current: this.current, answers: this.answers }));
+                } catch (e) { /* ignora si el navegador bloquea localStorage */ }
+            },
+            limpiarGuardado() {
+                try { localStorage.removeItem(this.storageKey); } catch (e) {}
             },
             flashPregunta() {
                 const el = this.$refs.qbox;
@@ -122,6 +146,7 @@
             get contestadas() { return Object.keys(this.answers).length; },
             responder(valor) {
                 this.answers[this.preguntas[this.current].n] = valor;
+                this.persistir();
                 if (this.current < this.total - 1) {
                     setTimeout(() => { if (this.current < this.total - 1) this.current++; }, 400);
                 }
