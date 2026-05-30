@@ -14,7 +14,7 @@
     .top .inst { font-size:13px; font-weight:bold; color:#1b3a6b; padding-left:10px; }
     .top .inst span { display:block; font-size:8.5px; font-weight:normal; color:#9ca3af; letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
     .top .meta { text-align:right; font-size:9.5px; color:#9ca3af; }
-    .addr { font-size:10px; color:#9ca3af; padding-top:14px; letter-spacing:.2px; }
+    .addr { font-size:10px; color:#9ca3af; padding-top:0; margin-top:-8px; letter-spacing:.2px; text-align:center; }
 
     .name { font-size:27px; color:#16233f; font-weight:bold; margin-top:24px; }
     .dom { font-size:12.5px; color:#6b7280; margin-top:7px; }
