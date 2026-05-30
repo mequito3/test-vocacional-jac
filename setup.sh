@@ -63,7 +63,14 @@ echo ">> cache limpia"
 php artisan migrate --force 2>&1 | tail -15
 chmod -R 775 storage bootstrap/cache 2>/dev/null
 
-# 7. Diagnostico breve (por si algo falla, lo leo por web)
+# 7. Construir cache de produccion (cada request arranca mas rapido)
+#    Se cachea DESPUES de escribir el .env real (paso 2).
+php artisan config:cache 2>&1 | tail -2
+php artisan route:cache 2>&1 | tail -2
+php artisan view:cache 2>&1 | tail -2
+echo ">> config/rutas/vistas cacheadas"
+
+# 8. Diagnostico breve (por si algo falla, lo leo por web)
 {
   echo "=== DIAG $(date -u) ==="
   php -d display_errors=1 artisan --version 2>&1
