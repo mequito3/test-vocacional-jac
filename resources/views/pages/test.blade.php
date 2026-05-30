@@ -2,6 +2,14 @@
 
 @section('title', 'Cuestionario')
 
+@push('head')
+<style>
+  /* Animacion al cambiar de pregunta: fade + deslizamiento, asi se nota el avance */
+  @keyframes qEnter{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+  .q-anim{animation:qEnter .34s cubic-bezier(.2,.7,.2,1)}
+</style>
+@endpush
+
 @php
     $listaPreguntas = [];
     foreach ($preguntas as $n => $texto) { $listaPreguntas[] = ['n' => $n, 'texto' => $texto]; }
@@ -25,8 +33,8 @@
   {{-- Tarjeta de la pregunta --}}
   <div class="rise d2 card rounded-4xl shadow-float mt-6 p-7 sm:p-10 relative overflow-hidden">
     <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-navy-500/10 blur-2xl"></div>
-    <div class="relative" x-transition>
-      <span class="inline-block font-display font-extrabold text-6xl sm:text-7xl text-navy-700/15 leading-none"
+    <div class="relative" x-ref="qbox">
+      <span class="inline-block font-display font-extrabold text-6xl sm:text-7xl text-navy-700/25 leading-none"
             x-text="String(preguntas[current].n).padStart(2,'0')"></span>
       <p class="font-display font-semibold text-ink text-2xl sm:text-3xl leading-snug mt-4 min-h-[110px]"
          x-text="preguntas[current].texto"></p>
@@ -100,6 +108,17 @@
             total: listaPreguntas.length,
             current: 0,
             answers: {},
+            init() {
+                // Reanima la tarjeta cada vez que cambia la pregunta (feedback visual claro)
+                this.$watch('current', () => this.flashPregunta());
+            },
+            flashPregunta() {
+                const el = this.$refs.qbox;
+                if (!el) return;
+                el.classList.remove('q-anim');
+                void el.offsetWidth;        // fuerza reflujo para reiniciar la animacion
+                el.classList.add('q-anim');
+            },
             get contestadas() { return Object.keys(this.answers).length; },
             responder(valor) {
                 this.answers[this.preguntas[this.current].n] = valor;
