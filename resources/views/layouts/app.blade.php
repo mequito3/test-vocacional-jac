@@ -19,7 +19,7 @@
       extend: {
         colors: {
           ink:    '#16233f',
-          navy:   { 700:'#1b3a6b', 600:'#234c8a', 500:'#2e63ad' },
+          navy:   { 700:'#1b3a6b', 600:'#234c8a', 500:'#2e63ad', 200:'#b8cde8', 50:'#eef4ff' },
           gold:   { 500:'#f5a623', 400:'#ffbd4a', 600:'#dc8f12' },
           cloud:  '#eef3fb',
         },

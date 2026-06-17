@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tu resultado')
+@section('title', 'Resultado — ' . $estudiante->nombre_completo)
 @section('fondoPlano', '1')
 
 @php
@@ -19,6 +19,16 @@
 
 @section('content')
 <x-container class="py-10 max-w-4xl">
+
+    {{-- Aviso compartido --}}
+    <div class="rise d1 mb-6 flex items-center gap-3 rounded-2xl bg-navy-50 border border-navy-200/60 px-5 py-3.5">
+        <svg class="w-4 h-4 text-navy-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+        </svg>
+        <p class="text-sm text-navy-700 font-medium">
+            Estás viendo el resultado compartido de <strong>{{ $estudiante->nombre_completo }}</strong>.
+        </p>
+    </div>
 
     {{-- 1. Encabezado --}}
     <header class="rise d1 text-center">
@@ -95,23 +105,17 @@
     </section>
 
     {{-- 6. Acciones --}}
-    <div class="rise d6 mt-8 flex flex-col items-center gap-4">
-        <div class="w-full max-w-md rounded-2xl border border-[color:var(--color-gold)]/30 bg-amber-50 px-6 py-5 text-center">
-            <div class="flex items-center justify-center gap-2 mb-2">
-                <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
-                </svg>
-                <span class="text-sm font-bold text-amber-700">Tu informe está listo</span>
-            </div>
-            <p class="text-sm text-amber-700 leading-relaxed">
-                JAC Bolivia 2000 te enviará tu informe personalizado de orientación vocacional <strong>por WhatsApp</strong> a la brevedad.
-            </p>
-        </div>
-        <a href="{{ route('reiniciar') }}"
-           class="inline-flex items-center gap-2 rounded-2xl border border-slate-300 text-slate-600 hover:border-ink hover:text-ink font-semibold px-8 py-3.5 text-sm transition-colors">
-            Realizar otro test
+    <div class="rise d6 mt-8 flex justify-center">
+        <a href="{{ route('resultado.share.pdf', $shareToken) }}"
+           class="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-ink hover:bg-navy-700 text-white font-semibold px-8 py-4 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Descargar mi informe en PDF
         </a>
     </div>
+
+    <p class="text-center text-xs text-slate-400 mt-6">
+        Test Vocacional CHASIDE · <a href="{{ route('welcome') }}" class="hover:underline">JAC Bolivia 2000</a>
+    </p>
 </x-container>
 @endsection
 

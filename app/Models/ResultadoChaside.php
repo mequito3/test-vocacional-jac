@@ -25,6 +25,7 @@ class ResultadoChaside extends Model
         'area_principal',
         'area_secundaria',
         'respuestas_json',
+        'share_token',
     ];
 
     protected $casts = [

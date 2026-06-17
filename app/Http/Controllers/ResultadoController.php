@@ -7,6 +7,7 @@ use App\Models\ResultadoChaside;
 use App\Support\Chaside;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ResultadoController extends Controller
@@ -45,6 +46,7 @@ class ResultadoController extends Controller
             'area_principal'  => $calculo['principal'],
             'area_secundaria' => $calculo['secundaria'],
             'respuestas_json' => $respuestas,
+            'share_token'     => Str::random(32),
         ]);
 
         return redirect()->route('resultado.mostrar', $resultado->id);
@@ -110,7 +112,7 @@ class ResultadoController extends Controller
             'ordenAreas' => Chaside::ORDEN_AREAS,
             'principal'  => $resultado->area_principal,
             'secundaria' => $resultado->area_secundaria,
-        ])->setPaper('letter', 'portrait');
+        ])->setPaper('a4', 'portrait');
 
         $slug = \Illuminate\Support\Str::slug($resultado->estudiante->nombre_completo);
 

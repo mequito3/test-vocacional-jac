@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RegistroRequest;
+use App\Models\Colegio;
 use App\Models\Estudiante;
 use App\Support\Chaside;
 use Illuminate\Http\RedirectResponse;
@@ -22,9 +23,16 @@ class TestController extends Controller
     /**
      * Pantalla 2 - Formulario de ficha del estudiante.
      */
-    public function registro(): View
+    public function registro(Request $request): View
     {
-        return view('pages.registro');
+        $colegios = Colegio::orderBy('nombre')->pluck('nombre');
+
+        // Si viene por enlace de grupo, mostramos el colegio ya asignado
+        $colegioSesion = $request->session()->has('colegio_id')
+            ? Colegio::find($request->session()->get('colegio_id'))
+            : null;
+
+        return view('pages.registro', compact('colegios', 'colegioSesion'));
     }
 
     /**
@@ -32,11 +40,35 @@ class TestController extends Controller
      */
     public function guardarRegistro(RegistroRequest $request): RedirectResponse
     {
-        $estudiante = Estudiante::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->session()->has('colegio_id')) {
+            // Vino por enlace de grupo: el colegio ya está fijado
+            $data['colegio_id'] = $request->session()->get('colegio_id');
+        } else {
+            // Acceso directo: buscamos o creamos el colegio por nombre
+            $colegio = Colegio::firstOrCreate([
+                'nombre' => trim($data['colegio_nombre']),
+            ]);
+            $data['colegio_id'] = $colegio->id;
+        }
+
+        unset($data['colegio_nombre']); // no es columna de estudiantes
+        $estudiante = Estudiante::create($data);
 
         $request->session()->put('estudiante_id', $estudiante->id);
 
         return redirect()->route('test');
+    }
+
+    /**
+     * Enlace de grupo: guarda el colegio en sesion y redirige a bienvenida.
+     */
+    public function grupo(Request $request, string $token): RedirectResponse
+    {
+        $colegio = Colegio::where('token', $token)->firstOrFail();
+        $request->session()->put('colegio_id', $colegio->id);
+        return redirect()->route('welcome');
     }
 
     /**

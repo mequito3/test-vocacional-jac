@@ -50,6 +50,103 @@
         <h2 class="font-display font-bold text-ink text-lg">Datos del estudiante</h2>
       </div>
       <div class="grid sm:grid-cols-2 gap-4">
+
+        {{-- Colegio (campo completo, ocupa ambas columnas) --}}
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-semibold text-slate-600 mb-1.5">
+            Colegio / Unidad Educativa <span class="text-rose-500">*</span>
+          </label>
+          @if ($colegioSesion)
+            {{-- Vino por enlace de grupo: colegio ya fijado --}}
+            <div class="flex items-center gap-3 rounded-2xl border border-navy-200 bg-navy-50 px-4 py-3.5">
+              <svg class="w-4 h-4 text-navy-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="font-semibold text-navy-700 text-sm">{{ $colegioSesion->nombre }}</span>
+              <span class="text-xs text-navy-500 ml-auto">Asignado por enlace</span>
+            </div>
+            <input type="hidden" name="colegio_nombre" value="{{ $colegioSesion->nombre }}">
+          @else
+            {{-- Acceso directo: autocomplete personalizado con Alpine.js --}}
+            <div x-data="autocompleteColegio({{ Illuminate\Support\Js::from($colegios) }}, {{ Illuminate\Support\Js::from(old('colegio_nombre', '')) }})"
+                 class="relative">
+
+              {{-- Input visible --}}
+              <div class="relative">
+                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
+                </svg>
+                <input
+                  name="colegio_nombre"
+                  x-model="query"
+                  @input="buscar()"
+                  @focus="abrirSi()"
+                  @keydown.arrow-down.prevent="bajar()"
+                  @keydown.arrow-up.prevent="subir()"
+                  @keydown.enter.prevent="seleccionar()"
+                  @keydown.escape="cerrar()"
+                  @blur="cerrarDelay()"
+                  required
+                  autocomplete="off"
+                  placeholder="Escribe el nombre de tu colegio o unidad educativa…"
+                  class="{{ $inputCls }} pl-10 @error('colegio_nombre') border-rose-400 @enderror">
+
+                {{-- Limpiar --}}
+                <button type="button" x-show="query.length > 0" @click="query = ''; resultados = []; abierto = false"
+                        class="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 grid place-items-center text-slate-400 hover:text-slate-600 transition-colors">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              {{-- Dropdown --}}
+              <div x-show="abierto"
+                   x-transition:enter="transition ease-out duration-100"
+                   x-transition:enter-start="opacity-0 -translate-y-1 scale-[.98]"
+                   x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                   x-transition:leave="transition ease-in duration-75"
+                   x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                   x-transition:leave-end="opacity-0 -translate-y-1 scale-[.98]"
+                   x-cloak
+                   class="absolute z-50 w-full mt-2 bg-white rounded-2xl border border-slate-200/80 shadow-[0_20px_60px_-15px_rgba(27,58,107,.25)] overflow-hidden max-h-64 overflow-y-auto">
+
+                <template x-for="(item, i) in resultados" :key="i">
+                  <button type="button"
+                          :data-idx="i"
+                          @mousedown.prevent="elegir(item)"
+                          class="w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-colors"
+                          :class="i === activo
+                            ? 'bg-navy-700 text-white'
+                            : 'text-slate-700 hover:bg-navy-50 hover:text-navy-700'">
+                    <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75"/>
+                    </svg>
+                    <span x-html="resaltar(item, i === activo)"></span>
+                  </button>
+                </template>
+
+                {{-- Ningún resultado: el texto se guardará como colegio nuevo --}}
+                <div x-show="resultados.length === 0 && query.length >= 2"
+                     class="px-4 py-3.5 flex items-center gap-3 text-sm text-slate-500">
+                  <svg class="w-4 h-4 shrink-0 text-gold-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                  </svg>
+                  No está en la lista — se registrará como nuevo colegio.
+                </div>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-400 mt-1.5">
+              Escribe 2 o más letras y selecciona de la lista.
+            </p>
+          @endif
+          @error('colegio_nombre')
+            <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+          @enderror
+        </div>
+
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre <span class="text-rose-500">*</span></label>
           <input name="nombre" value="{{ old('nombre') }}" required placeholder="Erika" class="{{ $inputCls }} @error('nombre') border-rose-400 @enderror">
@@ -72,8 +169,9 @@
           <input type="number" name="edad" value="{{ old('edad') }}" min="12" max="35" required placeholder="18" class="{{ $inputCls }} @error('edad') border-rose-400 @enderror">
         </div>
         <div>
-          <label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular</label>
-          <input name="celular" value="{{ old('celular') }}" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}">
+          <label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular <span class="text-rose-500">*</span></label>
+          <input name="celular" value="{{ old('celular') }}" required placeholder="Ej: 76543210" class="{{ $inputCls }} @error('celular') border-rose-400 @enderror">
+          @error('celular')<p class="text-rose-500 text-xs mt-1">{{ $message }}</p>@enderror
         </div>
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Correo electrónico</label>
@@ -108,3 +206,96 @@
   </form>
 </x-container>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('autocompleteColegio', (lista, valorInicial) => ({
+        lista,
+        query:     valorInicial || '',
+        resultados:[],
+        abierto:   false,
+        activo:    -1,
+
+        init() {
+            // Si hay un valor previo (error de validación), muestra sugerencias
+            if (this.query.length >= 2) this.buscar();
+        },
+
+        normalizar(s) {
+            return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        },
+
+        buscar() {
+            if (this.query.length < 2) {
+                this.resultados = [];
+                this.abierto    = false;
+                return;
+            }
+            const q = this.normalizar(this.query);
+            this.resultados = this.lista
+                .filter(n => this.normalizar(n).includes(q))
+                .slice(0, 9);
+            this.abierto = true;
+            this.activo  = -1;
+        },
+
+        abrirSi() {
+            if (this.query.length >= 2) this.buscar();
+        },
+
+        elegir(nombre) {
+            this.query   = nombre;
+            this.abierto = false;
+            this.activo  = -1;
+        },
+
+        bajar() {
+            if (!this.abierto) return;
+            this.activo = Math.min(this.activo + 1, this.resultados.length - 1);
+            this.$nextTick(() => this.scrollActivo());
+        },
+
+        subir() {
+            if (!this.abierto) return;
+            this.activo = Math.max(this.activo - 1, 0);
+            this.$nextTick(() => this.scrollActivo());
+        },
+
+        scrollActivo() {
+            const btn = this.$el.querySelector(`[data-idx="${this.activo}"]`);
+            if (btn) btn.scrollIntoView({ block: 'nearest' });
+        },
+
+        seleccionar() {
+            if (this.activo >= 0 && this.activo < this.resultados.length) {
+                this.elegir(this.resultados[this.activo]);
+            }
+        },
+
+        cerrar() {
+            this.abierto = false;
+            this.activo  = -1;
+        },
+
+        cerrarDelay() {
+            // Espera para que mousedown alcance a disparar antes del blur
+            setTimeout(() => this.cerrar(), 160);
+        },
+
+        resaltar(texto, isActivo) {
+            if (this.query.length < 2) return texto;
+            try {
+                const escaped = this.query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const repl = isActivo
+                    ? '<strong>$1</strong>'
+                    : '<mark style="background:rgba(245,166,35,.35);border-radius:3px;padding:0 2px;color:inherit">$1</mark>';
+                return texto.replace(new RegExp(`(${escaped})`, 'gi'), repl);
+            } catch (e) {
+                return texto;
+            }
+        },
+    }));
+});
+</script>
+@endpush
