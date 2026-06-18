@@ -64,7 +64,7 @@ class Chaside
         ],
         'I' => [
             'nombre'    => 'Ingeniería y Computación',
-            'color'     => '#d97706',
+            'color'     => '#ea580c',
             'intereses' => ['Cálculo', 'Científico', 'Manual', 'Exacto', 'Planificar', 'Preciso'],
             'aptitudes' => ['Práctico', 'Crítico', 'Analítico', 'Metódico'],
             'carreras'  => ['Ingeniería Informática', 'Ingeniería Civil', 'Ingeniería Industrial', 'Ingeniería Electrónica', 'Sistemas', 'Telecomunicaciones'],
@@ -78,7 +78,7 @@ class Chaside
         ],
         'E' => [
             'nombre'    => 'Ciencias Exactas y Agrarias',
-            'color'     => '#16a34a',
+            'color'     => '#1d4ed8',
             'intereses' => ['Investigación', 'Orden', 'Organización', 'Análisis y Síntesis', 'Numérico', 'Clasificar'],
             'aptitudes' => ['Metódico', 'Analítico', 'Observador', 'Introvertido', 'Paciente', 'Seguro'],
             'carreras'  => ['Biología', 'Química', 'Física', 'Matemáticas', 'Agronomía', 'Veterinaria', 'Geología'],

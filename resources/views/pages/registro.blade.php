@@ -155,14 +155,39 @@
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Apellido <span class="text-rose-500">*</span></label>
           <input name="apellido" value="{{ old('apellido') }}" required placeholder="Pérez Calvimontes" class="{{ $inputCls }} @error('apellido') border-rose-400 @enderror">
         </div>
-        <div>
+        <div x-data="{ abierto: false, valor: '{{ old('sexo', '') }}' }" class="relative">
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Sexo <span class="text-rose-500">*</span></label>
-          <select name="sexo" required class="{{ $inputCls }} @error('sexo') border-rose-400 @enderror">
-            <option value="">Indicar…</option>
+          <button type="button"
+                  @click="abierto = !abierto"
+                  @click.outside="abierto = false"
+                  class="{{ $inputCls }} flex items-center justify-between @error('sexo') border-rose-400 @enderror"
+                  :class="valor ? 'text-ink' : 'text-slate-400'">
+            <span x-text="valor || 'Indicar…'"></span>
+            <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform" :class="abierto ? 'rotate-180' : ''"
+                 fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <input type="hidden" name="sexo" :value="valor">
+          <div x-show="abierto"
+               x-transition:enter="transition ease-out duration-100"
+               x-transition:enter-start="opacity-0 -translate-y-1 scale-[.98]"
+               x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+               x-transition:leave="transition ease-in duration-75"
+               x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+               x-transition:leave-end="opacity-0 -translate-y-1 scale-[.98]"
+               x-cloak
+               class="absolute z-50 w-full mt-2 bg-white rounded-2xl border border-slate-200/80 shadow-[0_20px_60px_-15px_rgba(27,58,107,.25)] overflow-hidden">
             @foreach (['Femenino','Masculino','Otro'] as $op)
-              <option value="{{ $op }}" @selected(old('sexo') === $op)>{{ $op }}</option>
+              <button type="button"
+                      @click="valor = '{{ $op }}'; abierto = false"
+                      class="w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-colors"
+                      :class="valor === '{{ $op }}' ? 'bg-navy-700 text-white' : 'text-slate-700 hover:bg-navy-50 hover:text-navy-700'">
+                {{ $op }}
+              </button>
             @endforeach
-          </select>
+          </div>
+          @error('sexo')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
         </div>
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Edad <span class="text-rose-500">*</span></label>

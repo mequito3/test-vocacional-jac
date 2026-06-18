@@ -4,9 +4,16 @@
 
 @push('head')
 <style>
-  /* Animacion al cambiar de pregunta: fade + deslizamiento, asi se nota el avance */
   @keyframes qEnter{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
   .q-anim{animation:qEnter .34s cubic-bezier(.2,.7,.2,1)}
+
+  @keyframes dotBounce{0%,60%,100%{transform:translateY(0);opacity:1}30%{transform:translateY(-10px);opacity:.5}}
+  .dot{width:10px;height:10px;border-radius:50%;background:#c9a14a;display:inline-block;animation:dotBounce 1.4s infinite ease-in-out;}
+  .dot:nth-child(1){animation-delay:0s}
+  .dot:nth-child(2){animation-delay:.18s}
+  .dot:nth-child(3){animation-delay:.36s}
+  .dot:nth-child(4){animation-delay:.54s}
+  .dot:nth-child(5){animation-delay:.72s}
 </style>
 @endpush
 
@@ -88,15 +95,32 @@
       <template x-for="p in preguntas" :key="p.n">
         <input type="hidden" :name="`respuestas[${p.n}]`" :value="answers[p.n] ? 1 : 0">
       </template>
-      <button type="submit"
-        class="group w-full inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gold-500 hover:bg-gold-600 text-ink font-bold text-lg px-8 py-4 shadow-gold hover:-translate-y-0.5 transition-all">
-        Ver mi resultado
-        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      <button type="submit" x-ref="btnEnviar" class="hidden"></button>
+      <button type="button" @click="limpiarGuardado(); $refs.btnEnviar.click()"
+        class="group inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gold-500 hover:bg-gold-600 text-ink font-bold text-base px-8 py-3.5 shadow-gold hover:-translate-y-0.5 transition-all">
+        Salir
+        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+        </svg>
       </button>
     </form>
   </div>
 
   <p class="text-center text-xs text-slate-400 mt-4">Responde con sinceridad. No hay respuestas correctas ni incorrectas.</p>
+
+  {{-- BOTÓN DE PRUEBA: llena las 98 respuestas al azar y envía --}}
+  <div class="mt-6 flex justify-center">
+    <button type="button" @click="llenarAlAzar()"
+      class="inline-flex items-center gap-2 rounded-xl border border-dashed border-amber-400 bg-amber-50 text-amber-700 text-xs font-semibold px-4 py-2.5 hover:bg-amber-100 transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3"/>
+      </svg>
+      [PRUEBA] Llenar al azar y enviar
+    </button>
+  </div>
+
+  <x-modal-test-completado />
+
 </div>
 @endsection
 
@@ -108,15 +132,14 @@
             total: listaPreguntas.length,
             current: 0,
             answers: {},
+            modalFin: false,
             storageKey: 'chaside_test_' + estudianteId,
             init() {
-                this.restaurar();   // recupera el avance si el alumno recargo la pagina
-                // Reanima la tarjeta y guarda el avance cada vez que cambia la pregunta
+                this.restaurar();
                 this.$watch('current', () => { this.flashPregunta(); this.persistir(); });
             },
             restaurar() {
                 try {
-                    // En una compu compartida, descarta el avance de otros estudiantes
                     Object.keys(localStorage).forEach(k => {
                         if (k.startsWith('chaside_test_') && k !== this.storageKey) localStorage.removeItem(k);
                     });
@@ -126,12 +149,12 @@
                     if (Number.isInteger(data.current) && data.current >= 0 && data.current < this.total) {
                         this.current = data.current;
                     }
-                } catch (e) { /* localStorage no disponible: el test funciona igual, solo sin recuperacion */ }
+                } catch (e) {}
             },
             persistir() {
                 try {
                     localStorage.setItem(this.storageKey, JSON.stringify({ current: this.current, answers: this.answers }));
-                } catch (e) { /* ignora si el navegador bloquea localStorage */ }
+                } catch (e) {}
             },
             limpiarGuardado() {
                 try { localStorage.removeItem(this.storageKey); } catch (e) {}
@@ -140,12 +163,10 @@
                 const el = this.$refs.qbox;
                 if (!el) return;
                 el.classList.remove('q-anim');
-                void el.offsetWidth;        // fuerza reflujo para reiniciar la animacion
+                void el.offsetWidth;
                 el.classList.add('q-anim');
             },
             get contestadas() { return Object.keys(this.answers).length; },
-            // Siguiente pregunta SIN responder, empezando despues de la actual y dando la vuelta.
-            // Devuelve -1 si ya estan todas respondidas.
             proximaPendiente() {
                 for (let i = 1; i <= this.total; i++) {
                     const idx = (this.current + i) % this.total;
@@ -156,10 +177,12 @@
             responder(valor) {
                 this.answers[this.preguntas[this.current].n] = valor;
                 this.persistir();
-                // Salta automaticamente a la siguiente pendiente (rellena huecos sin reclics).
                 const siguiente = this.proximaPendiente();
                 if (siguiente !== -1) {
                     setTimeout(() => { this.current = siguiente; }, 400);
+                } else {
+                    // Todas respondidas: muestra el modal tras la animacion del ultimo click
+                    setTimeout(() => { this.modalFin = true; }, 550);
                 }
             },
             anterior() { if (this.current > 0) this.current--; },
@@ -167,6 +190,11 @@
             irAPendiente() {
                 const idx = this.proximaPendiente();
                 if (idx !== -1) this.current = idx;
+            },
+            llenarAlAzar() {
+                this.preguntas.forEach(p => { this.answers[p.n] = Math.random() < 0.5; });
+                this.persistir();
+                this.modalFin = true;
             },
         }));
     });

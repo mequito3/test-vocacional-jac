@@ -49,7 +49,9 @@ class ResultadoController extends Controller
             'share_token'     => Str::random(32),
         ]);
 
-        return redirect()->route('resultado.mostrar', $resultado->id);
+        $request->session()->forget('estudiante_id');
+
+        return redirect()->route('welcome');
     }
 
     /**
