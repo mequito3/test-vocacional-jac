@@ -76,6 +76,14 @@ class AdminController extends Controller
         return view('admin.colegio', compact('colegio', 'estudiantes'));
     }
 
+    public function recuentoColegio(int $id): \Illuminate\Http\JsonResponse
+    {
+        $count = Estudiante::where('colegio_id', $id)
+            ->whereHas('resultados')
+            ->count();
+        return response()->json(['count' => $count]);
+    }
+
     public function sinColegio(): View
     {
         $estudiantes = Estudiante::whereNull('colegio_id')

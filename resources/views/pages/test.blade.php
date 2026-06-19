@@ -90,20 +90,9 @@
         <button type="button" @click="irAPendiente()" class="text-gold-600 font-semibold underline underline-offset-2 ml-1">Completar las que faltan</button>
       </p>
     </template>
-    <form method="POST" action="{{ route('resultado.calcular') }}" x-show="contestadas === total" @submit="limpiarGuardado()">
-      @csrf
-      <template x-for="p in preguntas" :key="p.n">
-        <input type="hidden" :name="`respuestas[${p.n}]`" :value="answers[p.n] ? 1 : 0">
-      </template>
-      <button type="submit" x-ref="btnEnviar" class="hidden"></button>
-      <button type="button" @click="limpiarGuardado(); $refs.btnEnviar.click()"
-        class="group inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gold-500 hover:bg-gold-600 text-ink font-bold text-base px-8 py-3.5 shadow-gold hover:-translate-y-0.5 transition-all">
-        Salir
-        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-        </svg>
-      </button>
-    </form>
+    <template x-if="contestadas === total">
+      <p class="text-sm text-emerald-600 font-semibold">✓ Todas las preguntas respondidas</p>
+    </template>
   </div>
 
   <p class="text-center text-xs text-slate-400 mt-4">Responde con sinceridad. No hay respuestas correctas ni incorrectas.</p>
@@ -119,7 +108,7 @@
     </button>
   </div>
 
-  <x-modal-test-completado />
+  <x-modal-test-completado onConfirm="window.location.href='{{ route('welcome') }}'" />
 
 </div>
 @endsection
@@ -159,6 +148,13 @@
             limpiarGuardado() {
                 try { localStorage.removeItem(this.storageKey); } catch (e) {}
             },
+            async enviarResultados() {
+                const token = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+                const fd = new FormData();
+                fd.append('_token', token);
+                this.preguntas.forEach(p => fd.append(`respuestas[${p.n}]`, this.answers[p.n] ? 1 : 0));
+                try { await fetch('{{ route("resultado.calcular") }}', { method: 'POST', body: fd }); } catch(e) {}
+            },
             flashPregunta() {
                 const el = this.$refs.qbox;
                 if (!el) return;
@@ -181,8 +177,11 @@
                 if (siguiente !== -1) {
                     setTimeout(() => { this.current = siguiente; }, 400);
                 } else {
-                    // Todas respondidas: muestra el modal tras la animacion del ultimo click
-                    setTimeout(() => { this.modalFin = true; }, 550);
+                    setTimeout(() => {
+                        this.limpiarGuardado();
+                        this.enviarResultados();
+                        this.modalFin = true;
+                    }, 550);
                 }
             },
             anterior() { if (this.current > 0) this.current--; },
@@ -194,6 +193,8 @@
             llenarAlAzar() {
                 this.preguntas.forEach(p => { this.answers[p.n] = Math.random() < 0.5; });
                 this.persistir();
+                this.limpiarGuardado();
+                this.enviarResultados();
                 this.modalFin = true;
             },
         }));

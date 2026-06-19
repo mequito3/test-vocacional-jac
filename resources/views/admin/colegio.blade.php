@@ -385,6 +385,20 @@
   </div>
   {{-- ====== FIN MODAL ====== --}}
 
+  {{-- Banner tiempo real --}}
+  @if($colegio)
+  <div id="nuevo-resultado-banner"
+       class="hidden fixed bottom-5 right-5 z-50 flex items-center gap-3 bg-emerald-700 text-white rounded-2xl shadow-xl px-5 py-3.5">
+    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <span class="font-semibold text-sm">Nuevo resultado disponible</span>
+    <button onclick="location.reload()" class="ml-1 bg-white/20 hover:bg-white/30 rounded-xl px-3 py-1.5 text-xs font-bold transition-colors">
+      Actualizar
+    </button>
+  </div>
+  @endif
+
 </div>
 
 @endsection
@@ -467,5 +481,19 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 });
+
+@if($colegio)
+(function() {
+    let conteo = {{ $estudiantes->filter(fn($e) => $e->resultados->isNotEmpty())->count() }};
+    const banner = document.getElementById('nuevo-resultado-banner');
+    setInterval(async function() {
+        try {
+            const r = await fetch('{{ route("admin.colegios.recuento", $colegio->id) }}');
+            const d = await r.json();
+            if (d.count > conteo) banner.classList.remove('hidden');
+        } catch(e) {}
+    }, 30000);
+})();
+@endif
 </script>
 @endpush
