@@ -40,6 +40,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/colegios/{id}',       [AdminController::class, 'eliminarColegio'])->name('colegios.eliminar');
         Route::get('/colegios/{id}',          [AdminController::class, 'verColegio'])->name('colegios.ver');
         Route::get('/sin-colegio',            [AdminController::class, 'sinColegio'])->name('sin_colegio');
-        Route::get('/colegios/{id}/recuento', [AdminController::class, 'recuentoColegio'])->name('admin.colegios.recuento');
+        Route::get('/colegios/{id}/recuento', [AdminController::class, 'recuentoColegio'])->name('colegios.recuento');
     });
 });
