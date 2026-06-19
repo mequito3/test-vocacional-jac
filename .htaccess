@@ -1,18 +1,9 @@
-# Bloquear archivos y carpetas sensibles
-<FilesMatch "^(\.env|composer\.(json|lock)|artisan|phpunit\.xml|package\.json|vite\.config\.js|README\.md|setup\.sh)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
 
     RewriteEngine On
-
-    # Bloquear acceso a carpetas internas de Laravel
-    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$) - [F,L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
@@ -27,4 +18,10 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+
+    # Bloquear archivos sensibles
+    RewriteRule ^(\.env|composer\.(json|lock)|artisan|phpunit\.xml) - [F,L]
+
+    # Bloquear carpetas internas
+    RewriteRule ^(app|config|database|resources|routes|tests)(/|$) - [F,L]
 </IfModule>
