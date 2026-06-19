@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Colegio;
 use App\Models\Estudiante;
+use App\Models\ResultadoChaside;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,7 +43,13 @@ class AdminController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        return view('admin.dashboard', compact('colegios'));
+        $stats = [
+            'total'       => Estudiante::count(),
+            'completados' => ResultadoChaside::distinct('estudiante_id')->count('estudiante_id'),
+            'hoy'         => Estudiante::whereDate('created_at', today())->count(),
+        ];
+
+        return view('admin.dashboard', compact('colegios', 'stats'));
     }
 
     public function crearColegio(Request $request): RedirectResponse
