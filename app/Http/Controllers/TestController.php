@@ -45,6 +45,7 @@ class TestController extends Controller
         if ($request->session()->has('colegio_id')) {
             // Vino por enlace de grupo: el colegio ya está fijado
             $data['colegio_id'] = $request->session()->get('colegio_id');
+            $request->session()->forget('colegio_id');
         } else {
             // Acceso directo: buscamos o creamos el colegio por nombre
             $colegio = Colegio::firstOrCreate([
