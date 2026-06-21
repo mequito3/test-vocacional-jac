@@ -32,7 +32,9 @@ class TestController extends Controller
             ? Colegio::find($request->session()->get('colegio_id'))
             : null;
 
-        return view('pages.registro', compact('colegios', 'colegioSesion'));
+        return view('pages.registro', compact('colegios', 'colegioSesion') + [
+            'mostrarColegio' => config('app.show_colegio_field', true),
+        ]);
     }
 
     /**
@@ -46,13 +48,15 @@ class TestController extends Controller
             // Vino por enlace de grupo: el colegio ya está fijado
             $data['colegio_id'] = $request->session()->get('colegio_id');
             $request->session()->forget('colegio_id');
-        } else {
-            // Acceso directo: buscamos o creamos el colegio por nombre
+        } elseif (!empty($data['colegio_nombre'])) {
+            // Acceso directo con campo visible: buscamos o creamos por nombre
             $colegio = Colegio::firstOrCreate([
                 'nombre' => trim($data['colegio_nombre']),
             ]);
             $data['colegio_id'] = $colegio->id;
         }
+        // Si el campo está oculto (SHOW_COLEGIO_FIELD=false) y no vino por enlace,
+        // colegio_id queda null — el estudiante aparecerá en "Sin colegio".
 
         unset($data['colegio_nombre']); // no es columna de estudiantes
         $estudiante = Estudiante::create($data);

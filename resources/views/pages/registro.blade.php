@@ -26,19 +26,10 @@
     <p class="text-slate-500 mt-2">Tus datos quedan solo con tu informe. Los campos con <span class="text-rose-500 font-semibold">*</span> son obligatorios.</p>
   </div>
 
-  @if ($errors->any())
-    <div class="rise d2 mb-6 rounded-2xl border border-rose-200 bg-rose-50/80 px-5 py-4 text-sm text-rose-700">
-      <p class="font-semibold mb-1 flex items-center gap-2">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 9a1 1 0 012 0v4a1 1 0 11-2 0V9zm1-5a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/></svg>
-        Revisa estos campos:
-      </p>
-      <ul class="list-disc list-inside space-y-0.5 ml-1">
-        @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-      </ul>
-    </div>
-  @endif
-
-  <form method="POST" action="{{ route('registro.guardar') }}" class="space-y-5">
+  <form method="POST" action="{{ route('registro.guardar') }}" novalidate
+        x-data="validarFicha('{{ old('sexo', '') }}')"
+        @submit.prevent="enviar($el)"
+        class="space-y-5">
     @csrf
 
     {{-- Datos del estudiante --}}
@@ -51,157 +42,161 @@
       </div>
       <div class="grid sm:grid-cols-2 gap-4">
 
-        {{-- Colegio (campo completo, ocupa ambas columnas) --}}
+        {{-- Colegio --}}
+        @if ($colegioSesion)
+        <div class="sm:col-span-2">
+          <label class="block text-sm font-semibold text-slate-600 mb-1.5">Colegio / Unidad Educativa</label>
+          <div class="flex items-center gap-3 rounded-2xl border border-navy-200 bg-navy-50 px-4 py-3.5">
+            <svg class="w-4 h-4 text-navy-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span class="font-semibold text-navy-700 text-sm">{{ $colegioSesion->nombre }}</span>
+            <span class="text-xs text-navy-500 ml-auto">Asignado por enlace</span>
+          </div>
+          <input type="hidden" name="colegio_nombre" value="{{ $colegioSesion->nombre }}">
+        </div>
+        @elseif ($mostrarColegio)
         <div class="sm:col-span-2">
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">
             Colegio / Unidad Educativa <span class="text-rose-500">*</span>
           </label>
-          @if ($colegioSesion)
-            {{-- Vino por enlace de grupo: colegio ya fijado --}}
-            <div class="flex items-center gap-3 rounded-2xl border border-navy-200 bg-navy-50 px-4 py-3.5">
-              <svg class="w-4 h-4 text-navy-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          <div x-data="autocompleteColegio({{ Illuminate\Support\Js::from($colegios) }}, {{ Illuminate\Support\Js::from(old('colegio_nombre', '')) }})"
+               class="relative">
+            <div class="relative">
+              <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                   fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
               </svg>
-              <span class="font-semibold text-navy-700 text-sm">{{ $colegioSesion->nombre }}</span>
-              <span class="text-xs text-navy-500 ml-auto">Asignado por enlace</span>
-            </div>
-            <input type="hidden" name="colegio_nombre" value="{{ $colegioSesion->nombre }}">
-          @else
-            {{-- Acceso directo: autocomplete personalizado con Alpine.js --}}
-            <div x-data="autocompleteColegio({{ Illuminate\Support\Js::from($colegios) }}, {{ Illuminate\Support\Js::from(old('colegio_nombre', '')) }})"
-                 class="relative">
-
-              {{-- Input visible --}}
-              <div class="relative">
-                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
-                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
+              <input name="colegio_nombre" x-model="query"
+                     @input="buscar()" @focus="abrirSi()"
+                     @keydown.arrow-down.prevent="bajar()" @keydown.arrow-up.prevent="subir()"
+                     @keydown.enter.prevent="seleccionar()" @keydown.escape="cerrar()" @blur="cerrarDelay()"
+                     autocomplete="off"
+                     placeholder="Escribe el nombre de tu colegio o unidad educativa…"
+                     class="{{ $inputCls }} pl-10 @error('colegio_nombre') border-rose-400 @enderror">
+              <button type="button" x-show="query.length > 0" @click="query = ''; resultados = []; abierto = false"
+                      class="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 grid place-items-center text-slate-400 hover:text-slate-600 transition-colors">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-                <input
-                  name="colegio_nombre"
-                  x-model="query"
-                  @input="buscar()"
-                  @focus="abrirSi()"
-                  @keydown.arrow-down.prevent="bajar()"
-                  @keydown.arrow-up.prevent="subir()"
-                  @keydown.enter.prevent="seleccionar()"
-                  @keydown.escape="cerrar()"
-                  @blur="cerrarDelay()"
-                  required
-                  autocomplete="off"
-                  placeholder="Escribe el nombre de tu colegio o unidad educativa…"
-                  class="{{ $inputCls }} pl-10 @error('colegio_nombre') border-rose-400 @enderror">
-
-                {{-- Limpiar --}}
-                <button type="button" x-show="query.length > 0" @click="query = ''; resultados = []; abierto = false"
-                        class="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 grid place-items-center text-slate-400 hover:text-slate-600 transition-colors">
-                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </button>
+            </div>
+            <div x-show="abierto" x-cloak
+                 x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 -translate-y-1 scale-[.98]" x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                 x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 -translate-y-1 scale-[.98]"
+                 class="absolute z-50 w-full mt-2 bg-white rounded-2xl border border-slate-200/80 shadow-[0_20px_60px_-15px_rgba(27,58,107,.25)] overflow-hidden max-h-64 overflow-y-auto">
+              <template x-for="(item, i) in resultados" :key="i">
+                <button type="button" :data-idx="i" @mousedown.prevent="elegir(item)"
+                        class="w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-colors"
+                        :class="i === activo ? 'bg-navy-700 text-white' : 'text-slate-700 hover:bg-navy-50 hover:text-navy-700'">
+                  <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75"/>
                   </svg>
+                  <span x-text="item"></span>
                 </button>
-              </div>
-
-              {{-- Dropdown --}}
-              <div x-show="abierto"
-                   x-transition:enter="transition ease-out duration-100"
-                   x-transition:enter-start="opacity-0 -translate-y-1 scale-[.98]"
-                   x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                   x-transition:leave="transition ease-in duration-75"
-                   x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                   x-transition:leave-end="opacity-0 -translate-y-1 scale-[.98]"
-                   x-cloak
-                   class="absolute z-50 w-full mt-2 bg-white rounded-2xl border border-slate-200/80 shadow-[0_20px_60px_-15px_rgba(27,58,107,.25)] overflow-hidden max-h-64 overflow-y-auto">
-
-                <template x-for="(item, i) in resultados" :key="i">
-                  <button type="button"
-                          :data-idx="i"
-                          @mousedown.prevent="elegir(item)"
-                          class="w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-colors"
-                          :class="i === activo
-                            ? 'bg-navy-700 text-white'
-                            : 'text-slate-700 hover:bg-navy-50 hover:text-navy-700'">
-                    <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75"/>
-                    </svg>
-                    <span x-html="resaltar(item, i === activo)"></span>
-                  </button>
-                </template>
-
-                {{-- Ningún resultado: el texto se guardará como colegio nuevo --}}
-                <div x-show="resultados.length === 0 && query.length >= 2"
-                     class="px-4 py-3.5 flex items-center gap-3 text-sm text-slate-500">
-                  <svg class="w-4 h-4 shrink-0 text-gold-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
-                  </svg>
-                  No está en la lista — se registrará como nuevo colegio.
-                </div>
+              </template>
+              <div x-show="resultados.length === 0 && query.length >= 2"
+                   class="px-4 py-3.5 flex items-center gap-3 text-sm text-slate-500">
+                <svg class="w-4 h-4 shrink-0 text-gold-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                </svg>
+                No está en la lista — se registrará como nuevo colegio.
               </div>
             </div>
-
-            <p class="text-xs text-slate-400 mt-1.5">
-              Escribe 2 o más letras y selecciona de la lista.
-            </p>
-          @endif
-          @error('colegio_nombre')
-            <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
-          @enderror
+          </div>
+          <p class="text-xs text-slate-400 mt-1.5">Escribe 2 o más letras y selecciona de la lista.</p>
+          @error('colegio_nombre')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
         </div>
+        @endif
 
+        {{-- Nombre --}}
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre <span class="text-rose-500">*</span></label>
-          <input name="nombre" value="{{ old('nombre') }}" required placeholder="Erika" class="{{ $inputCls }} @error('nombre') border-rose-400 @enderror">
+          <input name="nombre" data-field="nombre" value="{{ old('nombre') }}" maxlength="40" placeholder="Erika Maria"
+                 @blur="validar('nombre', $el.value)"
+                 @input="if(errores.nombre) validar('nombre', $el.value)"
+                 :class="errores.nombre ? 'border-rose-400 ring-2 ring-rose-400/20' : ''"
+                 class="{{ $inputCls }} @error('nombre') border-rose-400 @enderror">
+          <p x-show="errores.nombre" x-cloak x-text="errores.nombre" class="text-xs text-rose-600 mt-1"></p>
+          @error('nombre')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
         </div>
+
+        {{-- Apellido --}}
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Apellido <span class="text-rose-500">*</span></label>
-          <input name="apellido" value="{{ old('apellido') }}" required placeholder="Pérez Calvimontes" class="{{ $inputCls }} @error('apellido') border-rose-400 @enderror">
+          <input name="apellido" data-field="apellido" value="{{ old('apellido') }}" maxlength="50" placeholder="Pérez Calvimontes"
+                 @blur="validar('apellido', $el.value)"
+                 @input="if(errores.apellido) validar('apellido', $el.value)"
+                 :class="errores.apellido ? 'border-rose-400 ring-2 ring-rose-400/20' : ''"
+                 class="{{ $inputCls }} @error('apellido') border-rose-400 @enderror">
+          <p x-show="errores.apellido" x-cloak x-text="errores.apellido" class="text-xs text-rose-600 mt-1"></p>
+          @error('apellido')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
         </div>
-        <div x-data="{ abierto: false, valor: '{{ old('sexo', '') }}' }" class="relative">
+
+        {{-- Sexo --}}
+        <div class="relative">
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Sexo <span class="text-rose-500">*</span></label>
-          <button type="button"
-                  @click="abierto = !abierto"
-                  @click.outside="abierto = false"
+          <button type="button" data-field="sexo"
+                  @click="sexoAbierto = !sexoAbierto"
+                  @click.outside="sexoAbierto = false"
                   class="{{ $inputCls }} flex items-center justify-between @error('sexo') border-rose-400 @enderror"
-                  :class="valor ? 'text-ink' : 'text-slate-400'">
-            <span x-text="valor || 'Indicar…'"></span>
-            <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform" :class="abierto ? 'rotate-180' : ''"
+                  :class="[sexoValor ? 'text-ink' : 'text-slate-400', errores.sexo ? 'border-rose-400 ring-2 ring-rose-400/20' : '']">
+            <span x-text="sexoValor || 'Indicar…'"></span>
+            <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform" :class="sexoAbierto ? 'rotate-180' : ''"
                  fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
             </svg>
           </button>
-          <input type="hidden" name="sexo" :value="valor">
-          <div x-show="abierto"
-               x-transition:enter="transition ease-out duration-100"
-               x-transition:enter-start="opacity-0 -translate-y-1 scale-[.98]"
-               x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-               x-transition:leave="transition ease-in duration-75"
-               x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-               x-transition:leave-end="opacity-0 -translate-y-1 scale-[.98]"
-               x-cloak
+          <input type="hidden" name="sexo" :value="sexoValor">
+          <div x-show="sexoAbierto" x-cloak
+               x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 -translate-y-1 scale-[.98]" x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+               x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 -translate-y-1 scale-[.98]"
                class="absolute z-50 w-full mt-2 bg-white rounded-2xl border border-slate-200/80 shadow-[0_20px_60px_-15px_rgba(27,58,107,.25)] overflow-hidden">
             @foreach (['Femenino','Masculino','Otro'] as $op)
               <button type="button"
-                      @click="valor = '{{ $op }}'; abierto = false"
+                      @click="sexoValor = '{{ $op }}'; sexoAbierto = false; errores.sexo = ''"
                       class="w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-colors"
-                      :class="valor === '{{ $op }}' ? 'bg-navy-700 text-white' : 'text-slate-700 hover:bg-navy-50 hover:text-navy-700'">
+                      :class="sexoValor === '{{ $op }}' ? 'bg-navy-700 text-white' : 'text-slate-700 hover:bg-navy-50 hover:text-navy-700'">
                 {{ $op }}
               </button>
             @endforeach
           </div>
+          <p x-show="errores.sexo" x-cloak x-text="errores.sexo" class="text-xs text-rose-600 mt-1"></p>
           @error('sexo')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
         </div>
+
+        {{-- Edad --}}
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Edad <span class="text-rose-500">*</span></label>
-          <input type="number" name="edad" value="{{ old('edad') }}" min="12" max="35" required placeholder="18" class="{{ $inputCls }} @error('edad') border-rose-400 @enderror">
+          <input type="number" name="edad" data-field="edad" value="{{ old('edad') }}" placeholder="18"
+                 @blur="validar('edad', $el.value)"
+                 @input="if(errores.edad) validar('edad', $el.value)"
+                 :class="errores.edad ? 'border-rose-400 ring-2 ring-rose-400/20' : ''"
+                 class="{{ $inputCls }} @error('edad') border-rose-400 @enderror">
+          <p x-show="errores.edad" x-cloak x-text="errores.edad" class="text-xs text-rose-600 mt-1"></p>
+          @error('edad')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
         </div>
+
+        {{-- Celular --}}
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular <span class="text-rose-500">*</span></label>
-          <input name="celular" value="{{ old('celular') }}" required placeholder="Ej: 76543210" class="{{ $inputCls }} @error('celular') border-rose-400 @enderror">
-          @error('celular')<p class="text-rose-500 text-xs mt-1">{{ $message }}</p>@enderror
+          <input name="celular" data-field="celular" value="{{ old('celular') }}" maxlength="15" inputmode="numeric" placeholder="Ej: 76543210"
+                 @blur="validar('celular', $el.value)"
+                 @input="if(errores.celular) validar('celular', $el.value)"
+                 :class="errores.celular ? 'border-rose-400 ring-2 ring-rose-400/20' : ''"
+                 class="{{ $inputCls }} @error('celular') border-rose-400 @enderror">
+          <p x-show="errores.celular" x-cloak x-text="errores.celular" class="text-xs text-rose-600 mt-1"></p>
+          @error('celular')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
         </div>
+
+        {{-- Email --}}
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Correo electrónico</label>
-          <input type="email" name="email" value="{{ old('email') }}" placeholder="nombre@correo.com" class="{{ $inputCls }} @error('email') border-rose-400 @enderror">
+          <input type="email" name="email" value="{{ old('email') }}" maxlength="100" placeholder="nombre@correo.com"
+                 class="{{ $inputCls }} @error('email') border-rose-400 @enderror">
+          @error('email')<p class="text-xs text-rose-600 mt-1">{{ $message }}</p>@enderror
         </div>
+
       </div>
     </div>
 
@@ -214,10 +209,10 @@
         <h2 class="font-display font-bold text-ink text-lg">Datos de los padres <span class="text-sm font-normal text-slate-400">(opcional)</span></h2>
       </div>
       <div class="grid sm:grid-cols-2 gap-4">
-        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre de la madre</label><input name="nombre_madre" value="{{ old('nombre_madre') }}" placeholder="Nombre completo" class="{{ $inputCls }}"></div>
-        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular de la madre</label><input name="celular_madre" value="{{ old('celular_madre') }}" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}"></div>
-        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre del padre</label><input name="nombre_padre" value="{{ old('nombre_padre') }}" placeholder="Nombre completo" class="{{ $inputCls }}"></div>
-        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular del padre</label><input name="celular_padre" value="{{ old('celular_padre') }}" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}"></div>
+        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre de la madre</label><input name="nombre_madre" value="{{ old('nombre_madre') }}" maxlength="60" placeholder="Nombre completo" class="{{ $inputCls }}"></div>
+        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular de la madre</label><input name="celular_madre" value="{{ old('celular_madre') }}" maxlength="15" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}"></div>
+        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre del padre</label><input name="nombre_padre" value="{{ old('nombre_padre') }}" maxlength="60" placeholder="Nombre completo" class="{{ $inputCls }}"></div>
+        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular del padre</label><input name="celular_padre" value="{{ old('celular_padre') }}" maxlength="15" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}"></div>
       </div>
     </div>
 
@@ -235,6 +230,83 @@
 @push('scripts')
 <script>
 document.addEventListener('alpine:init', () => {
+
+    Alpine.data('validarFicha', (oldSexo = '') => ({
+        sexoAbierto: false,
+        sexoValor: oldSexo,
+        errores: { nombre: '', apellido: '', sexo: '', edad: '', celular: '' },
+
+        validarCampo(campo, valor) {
+            const v = String(valor ?? '').trim();
+            switch (campo) {
+                case 'nombre': {
+                    if (!v) return 'Por favor ingresa tu nombre.';
+                    if (v.length < 2) return 'El nombre debe tener al menos 2 caracteres.';
+                    if (v.length > 40) return 'El nombre no puede superar los 40 caracteres.';
+                    const palabrasNombre = v.split(/\s+/).filter(p => p.length > 0);
+                    if (palabrasNombre.length > 4) return 'El nombre no puede tener más de 4 palabras.';
+                    return '';
+                }
+                case 'apellido': {
+                    if (!v) return 'Por favor ingresa tu apellido.';
+                    if (v.length < 2) return 'El apellido debe tener al menos 2 caracteres.';
+                    if (v.length > 50) return 'El apellido no puede superar los 50 caracteres.';
+                    const palabrasApellido = v.split(/\s+/).filter(p => p.length > 0);
+                    if (palabrasApellido.length > 2) return 'El apellido no puede tener más de 2 palabras.';
+                    return '';
+                }
+                case 'sexo':
+                    if (!v) return 'Selecciona una opción.';
+                    return '';
+                case 'edad':
+                    if (!v) return 'Indica tu edad.';
+                    const e = parseInt(v, 10);
+                    if (isNaN(e) || e < 12 || e > 35) return 'Ingresa una edad válida (entre 12 y 35 años).';
+                    return '';
+                case 'celular':
+                    if (!v) return 'Por favor ingresa tu número de celular.';
+                    if (v.length < 7) return 'Ingresa un número de celular válido.';
+                    if (v.length > 15) return 'El número de celular es demasiado largo.';
+                    return '';
+            }
+            return '';
+        },
+
+        validar(campo, valor) {
+            this.errores[campo] = this.validarCampo(campo, valor);
+        },
+
+        enviar(form) {
+            const valores = {
+                nombre:   form.querySelector('[name=nombre]')?.value  ?? '',
+                apellido: form.querySelector('[name=apellido]')?.value ?? '',
+                sexo:     this.sexoValor,
+                edad:     form.querySelector('[name=edad]')?.value    ?? '',
+                celular:  form.querySelector('[name=celular]')?.value  ?? '',
+            };
+            let hayErrores = false;
+            for (const [campo, valor] of Object.entries(valores)) {
+                this.errores[campo] = this.validarCampo(campo, valor);
+                if (this.errores[campo]) hayErrores = true;
+            }
+            if (!hayErrores) { form.submit(); return; }
+
+            // Scroll y focus al primer campo con error
+            this.$nextTick(() => {
+                const orden = ['nombre', 'apellido', 'sexo', 'edad', 'celular'];
+                for (const campo of orden) {
+                    if (!this.errores[campo]) continue;
+                    const el = form.querySelector(`[data-field="${campo}"]`);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(() => el.focus(), 300);
+                    }
+                    break;
+                }
+            });
+        },
+    }));
+
     Alpine.data('autocompleteColegio', (lista, valorInicial) => ({
         lista,
         query:     valorInicial || '',
@@ -308,18 +380,6 @@ document.addEventListener('alpine:init', () => {
             setTimeout(() => this.cerrar(), 160);
         },
 
-        resaltar(texto, isActivo) {
-            if (this.query.length < 2) return texto;
-            try {
-                const escaped = this.query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const repl = isActivo
-                    ? '<strong>$1</strong>'
-                    : '<mark style="background:rgba(245,166,35,.35);border-radius:3px;padding:0 2px;color:inherit">$1</mark>';
-                return texto.replace(new RegExp(`(${escaped})`, 'gi'), repl);
-            } catch (e) {
-                return texto;
-            }
-        },
     }));
 });
 </script>

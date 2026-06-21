@@ -30,6 +30,16 @@ class EstudianteFlowTest extends TestCase
         $this->get(route('registro'))->assertOk();
     }
 
+    public function test_autocomplete_no_renderiza_html_de_nombre_de_colegio(): void
+    {
+        config()->set('app.show_colegio_field', true);
+        Colegio::factory()->create(['nombre' => '<img src=x onerror=alert(1)>']);
+
+        $this->get(route('registro'))
+            ->assertOk()
+            ->assertDontSee('<img src=x onerror=alert(1)>', false);
+    }
+
     // ── Registro exitoso ──────────────────────────────────────────
 
     public function test_registro_valido_crea_estudiante_y_redirige_al_test(): void

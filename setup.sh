@@ -1,82 +1,97 @@
-#!/bin/bash
-# Deploy del Test Vocacional CHASIDE: sincroniza codigo desde ~/jac al docroot,
-# repara vendor, configura .env/.htaccess, migra y deja diagnostico en public/diag.txt.
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
-SRC=~/jac
-DOCROOT=~/domains/jac2000.americolabs.com/public_html
-cd "$DOCROOT" || { echo "!! No existe $DOCROOT"; exit 1; }
-echo ">> Carpeta: $(pwd)"
+# La aplicacion queda privada en ~/jac. Solo public/ se publica en public_html.
+APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PUBLIC_ROOT="${PUBLIC_ROOT:-$HOME/domains/jac2000.americolabs.com/public_html}"
 
-# 1. Sincronizar codigo fuente desde ~/jac (sin tocar vendor / .env / .htaccess / storage)
-echo ">> Sincronizando codigo desde $SRC ..."
-for d in app config database resources routes; do
-  if [ -d "$SRC/$d" ]; then
-    rm -rf "./$d" && cp -r "$SRC/$d" "./$d" && echo "   - $d"
-  fi
-done
+cleanup() {
+    if [[ -f "$APP_ROOT/artisan" && -f "$APP_ROOT/vendor/autoload.php" ]]; then
+        cd "$APP_ROOT"
+        php artisan up || true
+    fi
+}
+trap cleanup EXIT
 
-# 2. .env de produccion
-cat > .env <<'ENVEOF'
-APP_NAME="Test Vocacional CHASIDE"
-APP_ENV=production
-APP_KEY=base64:uZwlGl/9Cyt+8pcA1nrpmm7TF6yEDmYuEqWT7kY246A=
-APP_DEBUG=false
-APP_URL=https://jac2000.americolabs.com
-
-LOG_CHANNEL=stack
-LOG_LEVEL=error
-
-DB_CONNECTION=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_DATABASE=u636084353_jac2000
-DB_USERNAME=u636084353_jac2000
-DB_PASSWORD=JacBolivia2000
-
-SESSION_DRIVER=file
-CACHE_DRIVER=file
-QUEUE_CONNECTION=sync
-MAIL_MAILER=log
-ENVEOF
-
-# 3. .htaccess que envia todo a public/
-cat > .htaccess <<'HTEOF'
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteRule ^(.*)$ public/$1 [L]
-</IfModule>
-HTEOF
-echo ">> .env / .htaccess OK"
-
-# 4. Reparar vendor si esta incompleto (usa el de ~/jac)
-if [ ! -f vendor/symfony/deprecation-contracts/function.php ] || [ ! -f vendor/autoload.php ]; then
-  echo ">> vendor incompleto -> reemplazando con el de $SRC"
-  rm -rf vendor && cp -r "$SRC/vendor" ./vendor
+if [[ ! -d "$PUBLIC_ROOT" ]]; then
+    echo "ERROR: no existe $PUBLIC_ROOT." >&2
+    exit 1
 fi
 
-# 5. Limpiar TODA cache compilada (config, rutas, vistas blade)
+for command_name in php composer rsync git; do
+    if ! command -v "$command_name" >/dev/null 2>&1; then
+        echo "ERROR: $command_name no esta disponible en el servidor." >&2
+        exit 1
+    fi
+done
+
+php -r 'if (version_compare(PHP_VERSION, "8.2.0", "<")) { fwrite(STDERR, "ERROR: se requiere PHP 8.2 o superior.\n"); exit(1); }'
+
+# Migracion unica desde el despliegue antiguo, donde .env estaba expuesto bajo
+# public_html. Nunca se sobrescribe un .env privado que ya exista.
+if [[ ! -f "$APP_ROOT/.env" && -f "$PUBLIC_ROOT/.env" ]]; then
+    cp "$PUBLIC_ROOT/.env" "$APP_ROOT/.env"
+    chmod 600 "$APP_ROOT/.env"
+    echo "Configuracion movida a $APP_ROOT/.env"
+fi
+
+# Conserva posibles archivos subidos del esquema anterior.
+if [[ -d "$PUBLIC_ROOT/storage/app" ]]; then
+    mkdir -p "$APP_ROOT/storage/app"
+    rsync -a "$PUBLIC_ROOT/storage/app/" "$APP_ROOT/storage/app/"
+fi
+
+if [[ ! -f "$APP_ROOT/.env" ]]; then
+    echo "ERROR: falta $APP_ROOT/.env." >&2
+    exit 1
+fi
+
+cd "$APP_ROOT"
+
+# Evita publicar una mezcla accidental de archivos confirmados y cambios locales.
+if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "ERROR: el clon tiene cambios de codigo sin confirmar." >&2
+    exit 1
+fi
+
+php artisan down --retry=30 || true
+
+# Dependencias y caches se construyen fuera de la carpeta publica.
 rm -f bootstrap/cache/*.php
-rm -f storage/framework/views/*.php
-echo ">> cache limpia"
+composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+mkdir -p storage/framework/{cache/data,sessions,views} storage/logs bootstrap/cache
+chmod -R ug+rwX storage bootstrap/cache
 
-# 6. Migraciones + permisos
-php artisan migrate --force 2>&1 | tail -15
-chmod -R 775 storage bootstrap/cache 2>/dev/null
+php artisan optimize:clear
 
-# 7. Construir cache de produccion (cada request arranca mas rapido)
-#    Se cachea DESPUES de escribir el .env real (paso 2).
-php artisan config:cache 2>&1 | tail -2
-php artisan route:cache 2>&1 | tail -2
-php artisan view:cache 2>&1 | tail -2
-echo ">> config/rutas/vistas cacheadas"
+# No permitir un deploy con configuracion insegura o incompleta.
+php -r '
+require "vendor/autoload.php";
+$app = require "bootstrap/app.php";
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$password = config("app.admin_password");
+$safe = app()->environment("production")
+    && config("app.debug") === false
+    && is_string(config("app.key")) && config("app.key") !== ""
+    && is_string($password) && strlen($password) >= 12;
+if (! $safe) {
+    fwrite(STDERR, "ERROR: revisa APP_ENV, APP_DEBUG, APP_KEY y ADMIN_PASSWORD en .env.\n");
+    exit(1);
+}
+'
 
-# 8. Diagnostico breve (por si algo falla, lo leo por web)
-{
-  echo "=== DIAG $(date -u) ==="
-  php -d display_errors=1 artisan --version 2>&1
-  echo "migrate exit anterior: ver arriba"
-} > public/diag.txt 2>&1
-chmod 644 public/diag.txt 2>/dev/null
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
-echo ""
-echo "===FIN=== Recarga https://jac2000.americolabs.com"
+# public_html pasa a contener exclusivamente el contenido de public/. Se conserva
+# .well-known porque Hostinger puede usarlo para validaciones SSL.
+rsync -a --delete \
+    --exclude='/.well-known/' \
+    "$APP_ROOT/public/" "$PUBLIC_ROOT/"
+
+# Elimina restos sensibles conocidos del esquema de despliegue anterior.
+rm -f "$PUBLIC_ROOT/.env" "$PUBLIC_ROOT/diag.txt" "$PUBLIC_ROOT/setup.sh"
+
+echo "Deploy terminado: Laravel esta en $APP_ROOT y solo public/ esta en la web."

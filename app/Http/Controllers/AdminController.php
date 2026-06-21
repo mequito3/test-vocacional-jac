@@ -20,7 +20,12 @@ class AdminController extends Controller
     {
         $request->validate(['password' => 'required']);
 
-        if ($request->input('password') === config('app.admin_password')) {
+        $configuredPassword = config('app.admin_password');
+        $submittedPassword = (string) $request->input('password');
+
+        if (is_string($configuredPassword)
+            && $configuredPassword !== ''
+            && hash_equals($configuredPassword, $submittedPassword)) {
             $request->session()->regenerate();
             $request->session()->put('admin_authed', true);
             return redirect()->route('admin.dashboard');
@@ -31,13 +36,19 @@ class AdminController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
-        $request->session()->forget('admin_authed');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('admin.login');
     }
 
     public function dashboard(): View
     {
-        $colegios = Colegio::withCount('estudiantes')
+        $colegios = Colegio::withCount([
+            'estudiantes',
+            'estudiantes as completados_count' => fn($q) => $q->whereHas('resultados'),
+        ])
+            ->withMax('estudiantes', 'created_at')
             ->having('estudiantes_count', '>', 0)
             ->orderByDesc('estudiantes_count')
             ->orderBy('nombre')
@@ -49,7 +60,15 @@ class AdminController extends Controller
             'hoy'         => Estudiante::whereDate('created_at', today())->count(),
         ];
 
-        return view('admin.dashboard', compact('colegios', 'stats'));
+        $todosColegios = Colegio::orderBy('nombre')
+            ->get(['id', 'nombre'])
+            ->map(fn($c) => [
+                'id'     => $c->id,
+                'nombre' => $c->nombre,
+                'url'    => route('admin.colegios.ver', $c->id),
+            ]);
+
+        return view('admin.dashboard', compact('colegios', 'stats', 'todosColegios'));
     }
 
     public function crearColegio(Request $request): RedirectResponse

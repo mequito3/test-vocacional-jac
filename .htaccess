@@ -1,27 +1,21 @@
 <IfModule mod_rewrite.c>
-    <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
-    </IfModule>
-
+    Options -Indexes
     RewriteEngine On
 
-    # Handle Authorization Header
-    RewriteCond %{HTTP:Authorization} .
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    # Nunca servir archivos de configuracion o herramientas del proyecto.
+    RewriteRule ^(?:\.env(?:\..*)?|composer\.(?:json|lock)|artisan|phpunit\.xml|setup\.sh)$ - [F,L,NC]
+    RewriteRule ^(?:app|bootstrap|config|database|resources|routes|storage|tests|vendor)(?:/|$) - [F,L,NC]
 
-    # Redirect Trailing Slashes If Not A Folder...
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
+    # Evita un bucle cuando Apache vuelve a procesar la reescritura interna.
+    RewriteRule ^public(?:/|$) - [L]
 
-    # Send Requests To Front Controller...
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
+    # El front controller real de Laravel vive en public/index.php.
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
 
-    # Bloquear archivos sensibles
-    RewriteRule ^(\.env|composer\.(json|lock)|artisan|phpunit\.xml) - [F,L]
-
-    # Bloquear carpetas internas
-    RewriteRule ^(app|config|database|resources|routes|tests)(/|$) - [F,L]
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>

@@ -7,21 +7,21 @@
 <div x-data="adminColegio()" @keydown.escape.window="cerrar()">
 
   {{-- Encabezado --}}
-  <div class="mb-7">
+  <div class="mb-5 sm:mb-7">
     <a href="{{ route('admin.dashboard') }}"
-       class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-navy-700 font-semibold transition-colors mb-4">
+       class="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-navy-700 font-semibold transition-colors mb-3 sm:mb-4">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
       </svg>
       Panel
     </a>
 
-    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
       <div>
-        <h1 class="font-display font-extrabold text-ink text-3xl">
+        <h1 class="font-display font-extrabold text-ink text-2xl sm:text-3xl leading-tight">
           {{ $colegio ? $colegio->nombre : 'Sin colegio asignado' }}
         </h1>
-        <p class="text-slate-500 text-sm mt-1">
+        <p class="text-slate-500 text-sm mt-0.5 sm:mt-1">
           {{ $estudiantes->count() }} {{ $estudiantes->count() === 1 ? 'estudiante registrado' : 'estudiantes registrados' }}
         </p>
       </div>
@@ -30,15 +30,15 @@
       @php $enlace = url('/grupo/' . $colegio->token); @endphp
       <div class="shrink-0 w-full sm:w-auto" x-data="{copiado: false}">
         <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Enlace de registro</p>
-        <div class="flex items-center gap-2 rounded-2xl bg-white border border-slate-200 shadow-sm px-4 py-2.5">
-          <span class="text-sm font-mono text-slate-600 truncate max-w-xs select-all">{{ $enlace }}</span>
+        <div class="flex items-center gap-2 rounded-2xl bg-white border border-slate-200 shadow-sm px-3 sm:px-4 py-2.5">
+          <span class="text-xs sm:text-sm font-mono text-slate-500 truncate select-all flex-1 min-w-0">{{ $enlace }}</span>
           <button @click="navigator.clipboard.writeText('{{ $enlace }}').then(() => { copiado = true; setTimeout(() => copiado = false, 2500) })"
                   class="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all"
                   :class="copiado ? 'bg-emerald-100 text-emerald-700' : 'bg-navy-50 text-navy-700 hover:bg-navy-100'">
             <span x-text="copiado ? '✓ Copiado' : 'Copiar'"></span>
           </button>
         </div>
-        <p class="text-xs text-slate-400 mt-1.5">Comparte este enlace con el colegio para que los alumnos hagan el test.</p>
+        <p class="hidden sm:block text-xs text-slate-400 mt-1.5">Comparte este enlace con el colegio para que los alumnos hagan el test.</p>
       </div>
       @endif
     </div>
@@ -56,7 +56,7 @@
     </div>
 
   @else
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-visible">
+    <div class="space-y-3 sm:space-y-0 sm:bg-white sm:rounded-3xl sm:border sm:border-slate-200 sm:shadow-sm sm:overflow-visible">
 
       <div class="hidden sm:grid grid-cols-[2fr_1.4fr_1fr_1.6fr] gap-4 px-6 py-3.5 bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-400">
         <span>Estudiante</span>
@@ -89,12 +89,17 @@
           }
         @endphp
 
-        <div class="grid grid-cols-1 sm:grid-cols-[2fr_1.4fr_1fr_1.6fr] gap-3 sm:gap-4 px-6 py-4
-                    {{ $i > 0 ? 'border-t border-slate-100' : '' }} hover:bg-slate-50/60 transition-colors">
+        <div class="
+                    bg-white rounded-2xl border border-slate-100 shadow-sm
+                    sm:bg-transparent sm:rounded-none sm:border-0 sm:shadow-none
+                    {{ $i > 0 ? 'sm:border-t sm:border-slate-100' : '' }}
+                    grid grid-cols-1 sm:grid-cols-[2fr_1.4fr_1fr_1.6fr] sm:gap-4 px-4 sm:px-6 py-4
+                    sm:hover:bg-slate-50/60 transition-colors">
 
           {{-- Nombre --}}
-          <div class="flex items-center gap-3">
-            <div class="grid place-items-center w-9 h-9 rounded-xl bg-navy-50 text-navy-700 font-display font-extrabold text-sm shrink-0">
+          <div class="flex items-center gap-3 mb-2 sm:mb-0">
+            <div class="grid place-items-center w-9 h-9 rounded-full sm:rounded-xl font-display font-extrabold text-sm shrink-0 text-white"
+                 style="background: {{ $area ? $area['color'] : '#94a3b8' }}">
               {{ mb_substr($e->nombre, 0, 1) }}
             </div>
             <div class="min-w-0">
@@ -103,32 +108,35 @@
             </div>
           </div>
 
-          {{-- Área --}}
-          <div class="flex items-center">
+          {{-- Área: fila propia en móvil, columna en desktop --}}
+          <div class="mb-2 sm:mb-0 flex items-center justify-center sm:justify-start">
             @if ($resultado && $area)
               <div class="flex items-center gap-2">
                 <span class="grid place-items-center w-7 h-7 rounded-lg text-white font-display font-bold text-xs shrink-0"
                       style="background: {{ $area['color'] }}">{{ $resultado->area_principal }}</span>
-                <span class="text-sm text-slate-700 font-medium leading-tight">{{ $area['nombre'] }}</span>
+                <span class="text-sm text-slate-700 font-medium whitespace-normal break-words leading-tight">{{ $area['nombre'] }}</span>
               </div>
             @else
-              <span class="inline-block rounded-full bg-amber-50 text-amber-700 text-xs font-semibold px-2.5 py-1 border border-amber-200">
+              <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-700 text-xs font-semibold px-2.5 py-1 border border-amber-200">
                 Pendiente
               </span>
             @endif
           </div>
 
-          {{-- Fecha --}}
-          <div class="flex items-center text-sm text-slate-500">
-            @if ($resultado)
-              {{ $resultado->created_at->format('d/m/Y') }}
-            @else
-              <span class="text-slate-300">—</span>
-            @endif
-          </div>
+          {{-- Fecha + Acciones: flex en móvil, columnas independientes en desktop --}}
+          <div class="flex items-center justify-between sm:contents">
 
-          {{-- Acciones --}}
-          <div class="flex items-center justify-start sm:justify-end">
+            {{-- Fecha --}}
+            <div class="flex items-center text-xs sm:text-sm text-slate-400 sm:text-slate-500">
+              @if ($resultado)
+                {{ $resultado->created_at->format('d/m/Y') }}
+              @else
+                <span class="text-slate-300">—</span>
+              @endif
+            </div>
+
+            {{-- Acciones --}}
+            <div class="flex items-center justify-end">
             @if ($modalData)
 
               <div class="relative" x-data="{menu: false}">
@@ -142,7 +150,7 @@
                 </button>
 
                 <div x-show="menu" x-cloak x-transition
-                     class="absolute right-0 mt-1.5 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-20">
+                     class="absolute right-0 mt-1.5 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-20" style="max-width: calc(100vw - 2rem)">
 
                   {{-- Ver resultado --}}
                   <button type="button"
@@ -203,8 +211,10 @@
             @else
               <span class="text-xs text-slate-300">—</span>
             @endif
-          </div>
-        </div>
+            </div>{{-- fin acciones --}}
+
+          </div>{{-- fin fecha+acciones --}}
+        </div>{{-- fin fila estudiante --}}
       @endforeach
     </div>
   @endif

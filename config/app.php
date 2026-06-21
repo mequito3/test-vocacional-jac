@@ -15,8 +15,14 @@ return [
     |
     */
 
-    'name'           => env('APP_NAME', 'Laravel'),
-    'admin_password' => env('ADMIN_PASSWORD', 'admin123'),
+    'name'              => env('APP_NAME', 'Laravel'),
+    'admin_password'    => env('ADMIN_PASSWORD'),
+    // true  → el estudiante ve y llena el campo colegio manualmente.
+    // false → el campo se oculta; el colegio llega solo via enlace de grupo.
+    'show_colegio_field'  => env('SHOW_COLEGIO_FIELD', true),
+    // true  → muestra el botón "[PRUEBA] Llenar al azar" en el test.
+    // false → oculto en producción.
+    'enable_test_button'  => env('ENABLE_TEST_BUTTON', false),
 
     /*
     |--------------------------------------------------------------------------

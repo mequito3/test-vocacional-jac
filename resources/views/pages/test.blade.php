@@ -97,7 +97,8 @@
 
   <p class="text-center text-xs text-slate-400 mt-4">Responde con sinceridad. No hay respuestas correctas ni incorrectas.</p>
 
-  {{-- BOTÓN DE PRUEBA: llena las 98 respuestas al azar y envía --}}
+  {{-- BOTÓN DE PRUEBA: visible solo si ENABLE_TEST_BUTTON=true en .env --}}
+  @if(config('app.enable_test_button'))
   <div class="mt-6 flex justify-center">
     <button type="button" @click="llenarAlAzar()"
       class="inline-flex items-center gap-2 rounded-xl border border-dashed border-amber-400 bg-amber-50 text-amber-700 text-xs font-semibold px-4 py-2.5 hover:bg-amber-100 transition">
@@ -107,6 +108,7 @@
       [PRUEBA] Llenar al azar y enviar
     </button>
   </div>
+  @endif
 
   <x-modal-test-completado onConfirm="window.location.href='{{ route('welcome') }}'" />
 

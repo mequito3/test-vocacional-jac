@@ -28,6 +28,8 @@ class RegistroValidacionTest extends TestCase
 
     public function test_colegio_requerido(): void
     {
+        config()->set('app.show_colegio_field', true);
+
         $this->post(route('registro.guardar'), $this->datos(['colegio_nombre' => '']))
             ->assertSessionHasErrors('colegio_nombre');
     }
@@ -144,8 +146,20 @@ class RegistroValidacionTest extends TestCase
 
     public function test_colegio_de_un_solo_caracter_rechazado(): void
     {
+        config()->set('app.show_colegio_field', true);
+
         $this->post(route('registro.guardar'), $this->datos(['colegio_nombre' => 'X']))
             ->assertSessionHasErrors('colegio_nombre');
+    }
+
+    public function test_colegio_es_opcional_cuando_el_campo_esta_oculto(): void
+    {
+        config()->set('app.show_colegio_field', false);
+
+        $this->post(route('registro.guardar'), $this->datos(['colegio_nombre' => '']))
+            ->assertRedirect(route('test'));
+
+        $this->assertDatabaseHas('estudiantes', ['colegio_id' => null]);
     }
 
     // ── Campos opcionales de padres ───────────────────────────────

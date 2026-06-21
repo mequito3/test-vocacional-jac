@@ -90,4 +90,35 @@ class AdminSeguridadTest extends TestCase
     {
         $this->get(route('admin.login'))->assertOk();
     }
+
+    public function test_login_rechaza_acceso_si_no_hay_password_configurado(): void
+    {
+        config()->set('app.admin_password', null);
+
+        $this->post(route('admin.login.post'), ['password' => 'admin123'])
+            ->assertSessionHasErrors('password');
+
+        $this->assertFalse((bool) session('admin_authed'));
+    }
+
+    public function test_login_acepta_password_configurado(): void
+    {
+        config()->set('app.admin_password', 'una-clave-segura-de-prueba');
+
+        $this->post(route('admin.login.post'), ['password' => 'una-clave-segura-de-prueba'])
+            ->assertRedirect(route('admin.dashboard'))
+            ->assertSessionHas('admin_authed', true);
+    }
+
+    public function test_login_admin_limita_intentos(): void
+    {
+        config()->set('app.admin_password', 'una-clave-segura-de-prueba');
+
+        for ($intento = 0; $intento < 5; $intento++) {
+            $this->post(route('admin.login.post'), ['password' => 'incorrecta']);
+        }
+
+        $this->post(route('admin.login.post'), ['password' => 'incorrecta'])
+            ->assertTooManyRequests();
+    }
 }

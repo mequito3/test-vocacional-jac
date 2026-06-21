@@ -14,24 +14,36 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/',               [TestController::class, 'welcome'])->name('welcome');
 Route::get('/registro',       [TestController::class, 'registro'])->name('registro');
-Route::post('/registro',      [TestController::class, 'guardarRegistro'])->name('registro.guardar');
+Route::post('/registro',      [TestController::class, 'guardarRegistro'])
+    ->middleware('throttle:5,1')
+    ->name('registro.guardar');
 Route::get('/test',           [TestController::class, 'test'])->name('test');
-Route::post('/resultado',     [ResultadoController::class, 'calcular'])->name('resultado.calcular');
+Route::post('/resultado',     [ResultadoController::class, 'calcular'])
+    ->middleware('throttle:10,1')
+    ->name('resultado.calcular');
 Route::get('/resultado/{id}', [ResultadoController::class, 'mostrar'])->name('resultado.mostrar');
-Route::get('/resultado/{id}/pdf', [ResultadoController::class, 'pdf'])->name('resultado.pdf');
+Route::get('/resultado/{id}/pdf', [ResultadoController::class, 'pdf'])
+    ->middleware('throttle:10,1')
+    ->name('resultado.pdf');
 Route::get('/reiniciar',      [TestController::class, 'reiniciar'])->name('reiniciar');
 
 // Enlace de grupo para colegios (guarda el colegio en sesion)
 Route::get('/grupo/{token}',  [TestController::class, 'grupo'])->name('grupo');
 
 // Resultado publico compartido (sin necesidad de sesion)
-Route::get('/r/{token}',      [ShareController::class, 'ver'])->name('resultado.share');
-Route::get('/r/{token}/pdf',  [ShareController::class, 'pdf'])->name('resultado.share.pdf');
+Route::get('/r/{token}',      [ShareController::class, 'ver'])
+    ->middleware('throttle:60,1')
+    ->name('resultado.share');
+Route::get('/r/{token}/pdf',  [ShareController::class, 'pdf'])
+    ->middleware('throttle:10,1')
+    ->name('resultado.share.pdf');
 
 // Panel de administracion
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login',  [AdminController::class, 'loginForm'])->name('login');
-    Route::post('/login', [AdminController::class, 'login'])->name('login.post');
+    Route::post('/login', [AdminController::class, 'login'])
+        ->middleware('throttle:5,1')
+        ->name('login.post');
     Route::post('/logout',[AdminController::class, 'logout'])->name('logout');
 
     Route::middleware('admin.auth')->group(function () {

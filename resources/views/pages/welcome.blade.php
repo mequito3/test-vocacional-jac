@@ -37,19 +37,12 @@
       <div class="card rounded-4xl shadow-float p-7 sm:p-8 relative overflow-hidden">
         <div class="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-gold-500/20 blur-2xl"></div>
         <p class="text-xs uppercase tracking-[0.2em] text-navy-600 font-bold">Explora 7 áreas</p>
-        <div class="mt-4 grid grid-cols-2 gap-3">
-          @php
-            $chips = [
-              ['C','Administrativas','#2557a7'],['H','Humanísticas','#7c3aed'],
-              ['A','Artísticas','#db2777'],['S','Salud','#059669'],
-              ['I','Ingeniería','#d97706'],['D','Defensa','#dc2626'],
-              ['E','Cs. Exactas','#16a34a'],
-            ];
-          @endphp
-          @foreach ($chips as [$l,$n,$c])
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          @foreach (\App\Support\Chaside::ORDEN_AREAS as $letra)
+            @php $a = \App\Support\Chaside::AREAS[$letra]; @endphp
             <div class="flex items-center gap-2.5 rounded-2xl bg-white/70 px-3 py-2.5 shadow-card">
-              <span class="grid place-items-center w-8 h-8 rounded-lg text-white font-display font-bold text-sm shrink-0" style="background:{{ $c }}">{{ $l }}</span>
-              <span class="text-sm font-semibold text-ink truncate">{{ $n }}</span>
+              <span class="grid place-items-center w-8 h-8 rounded-lg text-white font-display font-bold text-sm shrink-0" style="background:{{ $a['color'] }}">{{ $letra }}</span>
+              <span class="text-sm font-semibold text-ink whitespace-normal break-words leading-tight">{{ $a['nombre'] }}</span>
             </div>
           @endforeach
           <div class="flex items-center justify-center rounded-2xl bg-navy-700 text-white px-3 py-2.5 shadow-btn">
