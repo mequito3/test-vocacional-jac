@@ -452,16 +452,19 @@ document.addEventListener('alpine:init', () => {
             const limpio = celular.replace(/\D/g, '');
             const numero = limpio.length <= 8 ? '591' + limpio : limpio;
             const texto = [
-                `Hola ${nombre} 👋`,
+                `Hola ${nombre}.`,
                 ``,
-                `Tu resultado del *Test Vocacional CHASIDE* (JAC Bolivia 2000) está listo.`,
+                `Tu resultado del Test Vocacional CHASIDE de JAC Bolivia 2000 ya está listo.`,
                 ``,
-                `🎯 Área dominante: *${areaNombre}*`,
+                `Área dominante: ${areaNombre}`,
                 ``,
-                `👉 Ver tu resultado aquí:`,
+                `Puedes ver tu informe aquí:`,
                 shareUrl,
                 ``,
-                `¡Mucho éxito en tu camino vocacional! 🎓`,
+                `Te recomendamos revisar tu resultado con calma y compartirlo con tus padres, tutor o docente.`,
+                ``,
+                `JAC Bolivia 2000`,
+                `Orientación Vocacional`,
             ].join('\n');
             window.open(`https://wa.me/${numero}?text=${encodeURIComponent(texto)}`, '_blank');
         },
