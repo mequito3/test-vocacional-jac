@@ -3,7 +3,7 @@
     RewriteEngine On
 
     # Nunca servir archivos de configuracion o herramientas del proyecto.
-    RewriteRule ^(?:\.env(?:\..*)?|composer\.(?:json|lock)|artisan|phpunit\.xml|setup\.sh)$ - [F,L,NC]
+    RewriteRule ^(?:\.env(?:\..*)?|composer\.(?:json|lock)|artisan|phpunit\.xml|server\.php|setup\.sh)$ - [F,L,NC]
     RewriteRule ^(?:app|bootstrap|config|database|resources|routes|storage|tests|vendor)(?:/|$) - [F,L,NC]
 
     # Evita un bucle cuando Apache vuelve a procesar la reescritura interna.
