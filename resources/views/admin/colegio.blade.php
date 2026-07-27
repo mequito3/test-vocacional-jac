@@ -27,7 +27,7 @@
       </div>
 
       @if ($colegio)
-      @php $enlace = url('/grupo/' . $colegio->token); @endphp
+      @php $enlace = request()->getSchemeAndHttpHost() . '/grupo/' . $colegio->token; @endphp
       <div class="shrink-0 w-full sm:w-auto" x-data="{copiado: false}">
         <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">Enlace de registro</p>
         <div class="flex items-center gap-2 rounded-2xl bg-white border border-slate-200 shadow-sm px-3 sm:px-4 py-2.5">
@@ -83,8 +83,8 @@
                   'area_s'     => $resultado->area_secundaria,
                   'puntajes'   => $resultado->puntajes(),
                   'share_token'=> $resultado->share_token,
-                  'share_url'  => route('resultado.share', $resultado->share_token),
-                  'pdf_url'    => route('resultado.share.pdf', $resultado->share_token),
+                  'share_url'  => request()->getSchemeAndHttpHost() . route('resultado.share', $resultado->share_token, false),
+                  'pdf_url'    => request()->getSchemeAndHttpHost() . route('resultado.share.pdf', $resultado->share_token, false),
               ];
           }
         @endphp
@@ -164,7 +164,7 @@
                   </button>
 
                   {{-- Descargar PDF --}}
-                  <a href="{{ route('resultado.share.pdf', $resultado->share_token) }}"
+                  <a href="{{ request()->getSchemeAndHttpHost() . route('resultado.share.pdf', $resultado->share_token, false) }}"
                      @click="menu = false"
                      class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-ink hover:bg-slate-50 transition-colors">
                     <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
