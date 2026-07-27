@@ -4,6 +4,7 @@ set -Eeuo pipefail
 # La aplicacion queda privada en ~/jac. Solo public/ se publica en public_html.
 APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PUBLIC_ROOT="${PUBLIC_ROOT:-$HOME/domains/jac2000.americolabs.com/public_html}"
+TEST_PUBLIC_ROOT="${TEST_PUBLIC_ROOT:-$PUBLIC_ROOT/test}"
 
 cleanup() {
     if [[ -f "$APP_ROOT/artisan" && -f "$APP_ROOT/vendor/autoload.php" ]]; then
@@ -89,7 +90,13 @@ php artisan view:cache
 # .well-known porque Hostinger puede usarlo para validaciones SSL.
 rsync -a --delete \
     --exclude='/.well-known/' \
+    --exclude='/test/' \
     "$APP_ROOT/public/" "$PUBLIC_ROOT/"
+
+mkdir -p "$TEST_PUBLIC_ROOT"
+rsync -a --delete \
+    --exclude='/.well-known/' \
+    "$APP_ROOT/public/" "$TEST_PUBLIC_ROOT/"
 
 # Elimina restos sensibles conocidos del esquema de despliegue anterior.
 rm -f "$PUBLIC_ROOT/.env" "$PUBLIC_ROOT/diag.txt" "$PUBLIC_ROOT/setup.sh"

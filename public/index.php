@@ -9,7 +9,12 @@ define('LARAVEL_START', microtime(true));
 // contenido de public/ se copia a public_html y la aplicacion queda en ~/jac.
 $appRoot = dirname(__DIR__);
 if (! file_exists($appRoot.'/vendor/autoload.php')) {
-    $appRoot = dirname(__DIR__, 3).'/jac';
+    foreach ([dirname(__DIR__, 3).'/jac', dirname(__DIR__, 4).'/jac'] as $candidateRoot) {
+        if (file_exists($candidateRoot.'/vendor/autoload.php')) {
+            $appRoot = $candidateRoot;
+            break;
+        }
+    }
 }
 
 /*
