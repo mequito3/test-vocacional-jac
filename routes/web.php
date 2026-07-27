@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/',               [TestController::class, 'welcome'])->name('welcome');
 Route::get('/registro',       [TestController::class, 'registro'])->name('registro');
 Route::post('/registro',      [TestController::class, 'guardarRegistro'])
-    ->middleware('throttle:5,1')
+    ->middleware('throttle:20,1')
     ->name('registro.guardar');
 Route::get('/test',           [TestController::class, 'test'])->name('test');
 Route::post('/resultado',     [ResultadoController::class, 'calcular'])
@@ -42,7 +42,7 @@ Route::get('/r/{token}/pdf',  [ShareController::class, 'pdf'])
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login',  [AdminController::class, 'loginForm'])->name('login');
     Route::post('/login', [AdminController::class, 'login'])
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:20,1')
         ->name('login.post');
     Route::post('/logout',[AdminController::class, 'logout'])->name('logout');
 

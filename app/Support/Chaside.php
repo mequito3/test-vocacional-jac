@@ -46,7 +46,7 @@ class Chaside
             'color'     => '#7c3aed',
             'intereses' => ['Precisión Verbal', 'Organización', 'Relación de Hechos', 'Lingüística', 'Orden', 'Justicia'],
             'aptitudes' => ['Responsable', 'Justo', 'Conciliador', 'Persuasivo', 'Sagaz', 'Imaginativo', 'Comprensivo', 'Estabilidad Emocional'],
-            'carreras'  => ['Lic. en Psicología', 'Lic. en Cs. de la Educación', 'Lic. en Lingüística', 'Lic. en Trabajo Social', 'Lic. en Comunicación Social', 'Lic. en Ciencias Políticas', 'Historia', 'Derecho'],
+            'carreras'  => ['Lic. en Psicología', 'Escuela de Formación de Maestros', 'Lic. en Lingüística', 'Lic. en Trabajo Social', 'Lic. en Comunicación Social', 'Lic. en Ciencias Políticas', 'Historia', 'Derecho'],
         ],
         'A' => [
             'nombre'    => 'Artísticas',
@@ -74,7 +74,7 @@ class Chaside
             'color'     => '#dc2626',
             'intereses' => ['Justicia', 'Equidad', 'Colaboración', 'Espíritu de Equipo', 'Liderazgo', 'Arriesgado'],
             'aptitudes' => ['Solidario', 'Valiente', 'Agresivo', 'Persuasivo'],
-            'carreras'  => ['Policía Nacional', 'Fuerzas Armadas', 'Bomberos', 'Criminología', 'Seguridad Privada', 'Derecho Penal'],
+            'carreras'  => ['Ciencias Policiales', 'Ciencias Militares', 'Derecho', 'Criminalística y Ciencias Forenses', 'Seguridad Ciudadana', 'Gestión de Riesgos y Desastres'],
         ],
         'E' => [
             'nombre'    => 'Ciencias Exactas y Agrarias',

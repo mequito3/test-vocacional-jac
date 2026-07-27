@@ -289,6 +289,33 @@ class EstudianteFlowTest extends TestCase
 
     // ── Helpers ───────────────────────────────────────────────────
 
+    public function test_calcular_rechaza_respuestas_incompletas(): void
+    {
+        $estudiante = Estudiante::factory()->create();
+
+        $respuestas = $this->respuestas();
+        unset($respuestas[98]);
+
+        $this->withSession(['estudiante_id' => $estudiante->id])
+            ->postJson(route('resultado.calcular'), ['respuestas' => $respuestas])
+            ->assertStatus(422);
+
+        $this->assertDatabaseCount('resultados_chaside', 0);
+    }
+
+    public function test_calcular_ajax_valido_confirma_guardado(): void
+    {
+        $estudiante = Estudiante::factory()->create();
+
+        $this->withSession(['estudiante_id' => $estudiante->id])
+            ->postJson(route('resultado.calcular'), ['respuestas' => $this->respuestas()])
+            ->assertOk()
+            ->assertJson(['ok' => true])
+            ->assertJsonStructure(['share_url']);
+
+        $this->assertDatabaseHas('resultados_chaside', ['estudiante_id' => $estudiante->id]);
+    }
+
     private function datosValidos(array $overrides = []): array
     {
         return array_merge([

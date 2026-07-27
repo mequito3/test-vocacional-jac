@@ -114,11 +114,68 @@ class AdminSeguridadTest extends TestCase
     {
         config()->set('app.admin_password', 'una-clave-segura-de-prueba');
 
-        for ($intento = 0; $intento < 5; $intento++) {
+        for ($intento = 0; $intento < 20; $intento++) {
             $this->post(route('admin.login.post'), ['password' => 'incorrecta']);
         }
 
         $this->post(route('admin.login.post'), ['password' => 'incorrecta'])
             ->assertTooManyRequests();
+    }
+
+    public function test_dashboard_admin_oculta_colegios_sin_estudiantes(): void
+    {
+        Colegio::factory()->create(['nombre' => 'Colegio Nuevo Sin Alumnos']);
+
+        $this->withSession(['admin_authed' => true])
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Aún no hay colegios registrados.')
+            ->assertDontSee('0 estudiantes');
+    }
+
+    public function test_dashboard_admin_muestra_colegios_con_estudiantes(): void
+    {
+        $colegio = Colegio::factory()->create(['nombre' => 'Colegio Con Alumnos']);
+        Estudiante::factory()->create(['colegio_id' => $colegio->id]);
+
+        $this->withSession(['admin_authed' => true])
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Colegio Con Alumnos')
+            ->assertSee('estudiante');
+    }
+
+    public function test_crear_colegio_redirige_a_su_pagina_de_enlace(): void
+    {
+        $response = $this->withSession(['admin_authed' => true])
+            ->post(route('admin.colegios.crear'), ['nombre' => 'Unidad Educativa Nueva']);
+
+        $colegio = Colegio::where('nombre', 'Unidad Educativa Nueva')->firstOrFail();
+
+        $response
+            ->assertRedirect(route('admin.colegios.ver', $colegio->id))
+            ->assertSessionHas('success');
+    }
+
+    public function test_crear_colegio_existente_no_duplica_registro(): void
+    {
+        $colegio = Colegio::factory()->create(['nombre' => 'Colegio Existente']);
+
+        $this->withSession(['admin_authed' => true])
+            ->post(route('admin.colegios.crear'), ['nombre' => 'Colegio Existente'])
+            ->assertRedirect(route('admin.colegios.ver', $colegio->id));
+
+        $this->assertDatabaseCount('colegios', 1);
+    }
+
+    public function test_dashboard_admin_muestra_acceso_a_estudiantes_sin_colegio(): void
+    {
+        Estudiante::factory()->create(['colegio_id' => null]);
+
+        $this->withSession(['admin_authed' => true])
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Sin colegio asignado')
+            ->assertSee(route('admin.sin_colegio'), false);
     }
 }

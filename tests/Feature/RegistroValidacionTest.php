@@ -138,6 +138,38 @@ class RegistroValidacionTest extends TestCase
             ->assertSessionHasErrors('nombre');
     }
 
+
+    public function test_nombre_con_numeros_rechazado(): void
+    {
+        $this->post(route('registro.guardar'), $this->datos(['nombre' => 'Erika5']))
+            ->assertSessionHasErrors('nombre');
+    }
+
+    public function test_nombre_con_letras_repetidas_rechazado(): void
+    {
+        $this->post(route('registro.guardar'), $this->datos(['nombre' => 'Americoooooooo']))
+            ->assertSessionHasErrors('nombre');
+    }
+
+    public function test_apellido_con_palabra_demasiado_larga_rechazado(): void
+    {
+        $this->post(route('registro.guardar'), $this->datos(['apellido' => 'Alvarezzzzzzzzzzzzzzzzzzzz']))
+            ->assertSessionHasErrors('apellido');
+    }
+
+    public function test_nombre_apellido_con_espacios_extra_se_normaliza(): void
+    {
+        $this->post(route('registro.guardar'), $this->datos([
+            'nombre' => '  Ana   Maria  ',
+            'apellido' => '  Lopez   Rojas  ',
+        ]))->assertRedirect(route('test'));
+
+        $this->assertDatabaseHas('estudiantes', [
+            'nombre' => 'Ana Maria',
+            'apellido' => 'Lopez Rojas',
+        ]);
+    }
+
     public function test_celular_menor_a_7_digitos_rechazado(): void
     {
         $this->post(route('registro.guardar'), $this->datos(['celular' => '123']))

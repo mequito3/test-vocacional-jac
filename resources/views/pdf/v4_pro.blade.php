@@ -1,354 +1,209 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 @php
-    $areaP   = $areas[$principal];
-    $areaS   = $areas[$secundaria];
-    $logo    = public_path('images/logo-jac.png');
+    $areaP = $areas[$principal];
+    $areaS = $areas[$secundaria];
+    $orden = $ordenAreas;
+    $logo = public_path('images/logo-jac.png');
     $hasLogo = file_exists($logo);
-    $half    = (int) ceil(count($areaP['carreras']) / 2);
-    $color   = $areaP['color'];
+    $color = $areaP['color'];
 
-    $hex = ltrim($color,'#');
-    $r = hexdec(substr($hex,0,2));
-    $g = hexdec(substr($hex,2,2));
-    $b = hexdec(substr($hex,4,2));
-    $lum     = ($r*299 + $g*587 + $b*114) / 1000;
-    $onColor = $lum > 145 ? '#1e293b' : '#ffffff';
-    $pale    = sprintf('rgba(%d,%d,%d,0.07)', $r, $g, $b);
+    $hex = ltrim($color, '#');
+    $r = hexdec(substr($hex, 0, 2));
+    $g = hexdec(substr($hex, 2, 2));
+    $b = hexdec(substr($hex, 4, 2));
+    $onColor = (($r * 299 + $g * 587 + $b * 114) / 1000) > 145 ? '#16233f' : '#ffffff';
 
-    /* Porcentajes */
-    $pctPrincipal = round(($puntajes[$principal] / 14) * 100);
-    $pctSec       = round(($puntajes[$secundaria] / 14) * 100);
+    $pctPrincipal = (int) round(($puntajes[$principal] / 14) * 100);
+    $afinidad = $pctPrincipal >= 90 ? 'Afinidad muy alta' : ($pctPrincipal >= 75 ? 'Afinidad alta' : 'Afinidad favorable');
 
-    /* Etiqueta dinámica de afinidad */
-    if ($pctPrincipal >= 86)      $afinidad = 'Afinidad muy alta';
-    elseif ($pctPrincipal >= 71)  $afinidad = 'Afinidad alta';
-    elseif ($pctPrincipal >= 57)  $afinidad = 'Afinidad media';
-    else                          $afinidad = 'Afinidad moderada';
+    $meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    $fechaBase = $resultado->created_at ?? now();
+    $fecha = $fechaBase->day . ' de ' . $meses[$fechaBase->month - 1] . ' de ' . $fechaBase->year;
 
-    $mes   = ['enero','febrero','marzo','abril','mayo','junio',
-              'julio','agosto','septiembre','octubre','noviembre','diciembre'];
-    $fecha = $resultado->created_at->day.' de '
-           . $mes[$resultado->created_at->month-1].' de '
-           . $resultado->created_at->year;
+    $carreras = array_values($areaP['carreras']);
+    $carreraPrincipal = $carreras[0] ?? $areaP['nombre'];
+    $carrerasCompatibles = array_slice($carreras, 1, 4);
 
-    $txt = [
-        'C' => 'Orientación hacia la gestión, el análisis numérico y la organización de recursos. Aptitud para entornos donde la planificación estratégica y la toma de decisiones son el eje profesional.',
-        'H' => 'Inclinación hacia las ciencias sociales, la comunicación y el trabajo con personas. Capacidad para comprender la realidad social y contribuir al bienestar colectivo desde disciplinas humanísticas.',
-        'A' => 'Sensibilidad estética, creatividad y pensamiento divergente. Aptitud para generar propuestas originales en lenguajes visuales, sonoros y expresivos de alto impacto comunicativo.',
-        'S' => 'Afinidad con el cuidado de la salud y la atención a las personas. Vocación de servicio, empatía profunda y disposición para responsabilidades de alto impacto en el bienestar humano.',
-        'I' => 'Orientación hacia el razonamiento técnico y la resolución de problemas. Aptitud analítica y práctica para el diseño, construcción y optimización de sistemas, procesos y tecnologías.',
-        'D' => 'Vocación por la seguridad, la defensa y el trabajo bajo presión. Liderazgo, valentía y compromiso con la justicia y el orden institucional en situaciones de alta exigencia.',
-        'E' => 'Orientación hacia la investigación científica y el razonamiento lógico-matemático. Meticulosidad y aptitud para el trabajo experimental y el análisis riguroso de fenómenos naturales.',
+    $descripciones = [
+        'C' => 'El perfil evidencia capacidad para organizar información, administrar recursos y tomar decisiones con criterio. Presenta una inclinación clara hacia entornos de gestión, planificación y análisis de resultados.',
+        'H' => 'El perfil muestra facilidad para comprender necesidades humanas, comunicar ideas y analizar contextos sociales. Destaca una orientación hacia el acompañamiento, la educación, la comunicación y el servicio social.',
+        'A' => 'El perfil revela sensibilidad estética, imaginación y facilidad para expresar ideas de forma visual, sonora o creativa. La persona muestra interés por actividades donde la originalidad y la composición son importantes.',
+        'S' => 'El perfil manifiesta vocación de servicio, empatía y disposición para cuidar el bienestar de otras personas. Existe inclinación hacia áreas vinculadas con salud, prevención, atención y responsabilidad humana.',
+        'I' => 'El perfil refleja pensamiento lógico, capacidad de resolver problemas y gusto por comprender cómo funcionan los sistemas. Presenta afinidad con actividades técnicas, tecnológicas, constructivas y de innovación.',
+        'D' => 'El perfil muestra disciplina, sentido de justicia, capacidad de reacción y orientación al servicio institucional. Se observa interés por seguridad, orden, liderazgo y trabajo bajo responsabilidad.',
+        'E' => 'El perfil evidencia curiosidad científica, pensamiento analítico y gusto por investigar fenómenos naturales o exactos. Destaca la capacidad de observación, orden y razonamiento metódico.',
     ];
 
-    /* Divide nombre_completo en máximo 2 líneas para evitar desbordamiento */
-    $nameParts = array_values(array_filter(explode(' ', trim($estudiante->nombre_completo))));
-    $wc    = count($nameParts);
-    $split = max(1, (int)ceil($wc / 2));
-    $nameL1 = implode(' ', array_slice($nameParts, 0, $split));
-    $nameL2 = implode(' ', array_slice($nameParts, $split));
-
-    $frases = [
-        'C' => 'Tu perfil muestra una destacada capacidad para organizar, planificar y tomar decisiones con criterio. Esas habilidades son la base de quienes lideran equipos, gestionan proyectos y construyen resultados concretos dentro de las organizaciones.',
-        'H' => 'Tu perfil refleja una capacidad genuina para comprender, comunicar e interpretar el mundo desde las personas. Quienes destacan en estas áreas tienen el poder de transformar realidades sociales, educativas y culturales con su visión.',
-        'A' => 'Tu perfil evidencia una creatividad y sensibilidad que van más allá de lo técnico. Las personas con tu tipo de perfil tienen la capacidad de comunicar ideas de forma original y generar impacto donde la expresión y el diseño son protagonistas.',
-        'S' => 'Tu perfil refleja vocación de servicio, empatía y un compromiso genuino con el bienestar de las personas. Quienes eligen este camino encuentran en cada acción una oportunidad de generar un impacto real y profundo en la vida de otros.',
-        'I' => 'Tu perfil muestra una destacada capacidad para analizar problemas, identificar patrones y construir soluciones. Esas habilidades son el motor de la innovación tecnológica y la base de quienes crean las herramientas que transforman el mundo.',
-        'D' => 'Tu perfil refleja disciplina, responsabilidad y la capacidad de actuar con decisión cuando más se necesita. Quienes tienen estas cualidades encuentran en el liderazgo institucional y el servicio un propósito sólido y duradero.',
-        'E' => 'Tu perfil evidencia un pensamiento lógico y analítico orientado a entender cómo funciona el mundo. Quienes eligen este camino tienen la capacidad de contribuir con conocimiento que trasciende generaciones y abre nuevas fronteras.',
+    $recomendaciones = [
+        'C' => 'Fortalecer matemáticas aplicadas, comunicación empresarial, herramientas digitales, liderazgo y toma de decisiones.',
+        'H' => 'Fortalecer lectura crítica, redacción, expresión oral, investigación social, escucha activa y análisis de realidad.',
+        'A' => 'Fortalecer portafolio creativo, dibujo, composición visual, cultura artística y manejo de herramientas digitales.',
+        'S' => 'Fortalecer biología, química, hábitos de estudio, responsabilidad, comunicación empática y trabajo colaborativo.',
+        'I' => 'Fortalecer matemáticas, física, lógica, programación básica, análisis de problemas y constancia práctica.',
+        'D' => 'Fortalecer disciplina personal, condición física, ética, normativa, comunicación bajo presión y trabajo en equipo.',
+        'E' => 'Fortalecer matemáticas, ciencias naturales, método científico, laboratorio, observación y registro de datos.',
     ];
-    $frase = $frases[$principal];
 
-    $PAD = 22;
-    $FTR = 20;
+    $colegioNombre = optional($estudiante->colegio)->nombre;
 @endphp
 <style>
-@page { size:A4 portrait; margin:0; }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'DejaVu Sans',sans-serif; font-size:11px; color:#1e293b; background:#fff; }
-
-#foot-line { position:fixed; bottom:{{ $FTR }}px; left:0; right:0; height:3px; background:#c9a14a; }
-#foot-bar  { position:fixed; bottom:0; left:0; right:0; height:{{ $FTR }}px;
-             background:#0b1626; text-align:center; color:rgba(255,255,255,.55);
-             font-size:10px; letter-spacing:.4px; padding-top:5px; overflow:hidden; }
-#page      { margin-bottom:{{ $FTR + 8 }}px; }
+@page{size:A4;margin:0}
+*{box-sizing:border-box}
+body{margin:0;font-family:DejaVu Sans,sans-serif;color:#182235;background:#fff;font-size:11px}
+.top{background:#0b1626;color:#fff;padding:15px 30px 13px;border-bottom:5px solid {{ $color }}}
+.brand{display:table;width:100%}
+.brand-left,.brand-right{display:table-cell;vertical-align:middle}
+.brand-right{text-align:right;color:#b9c4d8;font-size:10px}
+.logo{width:35px;height:35px;object-fit:contain;background:#fff;border-radius:7px;padding:4px;margin-right:9px;vertical-align:middle}
+.brand-title{font-size:16px;font-weight:700;display:inline-block;vertical-align:middle}
+.brand-sub{font-size:10px;color:#b9c4d8;margin-top:2px}
+.page{padding:20px 30px 50px}
+.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.7px;color:#64748b;font-weight:700}
+.hero{padding:0 0 12px;border-bottom:1px solid #e5eaf1}
+.hero-table{width:100%;border-collapse:collapse}
+.hero-main{width:67%;vertical-align:middle;padding-right:16px}
+.hero-score{width:33%;vertical-align:middle;text-align:center;border-left:1px solid #e5eaf1}
+.student{font-size:24px;line-height:1.1;font-weight:800;color:#0f172a;margin:6px 0 6px}
+.meta{font-size:11px;color:#64748b;line-height:1.45}
+.pill{display:inline-block;background:{{ $color }};color:{{ $onColor }};border-radius:4px;padding:6px 9px;font-weight:700;font-size:11px;margin-top:8px}
+.score-big{font-size:52px;line-height:1;font-weight:800;color:{{ $color }}}
+.score-label{font-size:12px;font-weight:700;color:#0f172a;margin-top:3px}
+.career-box{margin-top:10px;background:#f8fafc;border-left:5px solid {{ $color }};padding:9px 12px}
+.career-title{font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1.3px}
+.career{font-size:23px;font-weight:800;color:#0f172a;margin-top:3px;line-height:1.12}
+.related{margin-top:6px;border:1px solid #e5eaf1;background:#fff;padding:6px 10px}
+.related .title{font-size:10px;margin-bottom:13px}
+.related span{display:inline-block;border:1px solid #e2e8f0;border-radius:3px;padding:5px 8px;margin:0 7px 7px 0;color:#334155;background:#f8fafc;font-size:10px;line-height:1.25}
+.grid{width:100%;border-collapse:collapse;margin-top:10px}
+.col{width:50%;vertical-align:top}
+.box{border:1px solid #e5eaf1;border-top:4px solid {{ $color }};padding:10px 12px;min-height:96px}
+.box.gold{border-top-color:#c9a14a}
+.title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;color:#0f172a}
+.copy{line-height:1.52;color:#334155}
+.list{margin:0;padding-left:16px;line-height:1.5}
+.scores{margin-top:10px;border:1px solid #e5eaf1;padding:10px 12px}
+.score-table{width:100%;border-collapse:collapse}
+.score-table td{padding:3px 0;vertical-align:middle}
+.score-name{width:210px;color:#334155}
+.dot{display:inline-block;width:9px;height:9px;margin-right:7px;border-radius:2px}
+.bar{height:9px;background:#edf2f7;border-radius:3px;overflow:hidden}
+.bar div{height:9px;border-radius:3px}
+.score-pct{width:42px;text-align:right;color:#0f172a}
+.footer{position:fixed;left:0;right:0;bottom:0;height:30px;background:#0b1626;color:#aab6ca;text-align:center;font-size:9px;line-height:1.2;padding:8px 26px 0;border-top:3px solid #c9a14a;overflow:hidden;white-space:nowrap}
+.note{margin-top:7px;background:#fff;border:1px solid #e5eaf1;padding:7px 10px;color:#334155;line-height:1.34;font-size:10.5px}
 </style>
 </head>
 <body>
-
-<div id="foot-line"></div>
-<div id="foot-bar">JAC BOLIVIA 2000 &nbsp;·&nbsp; Av. San Martín esq. Brasil, Ed. Pruber 901 &nbsp;·&nbsp; Cochabamba — Bolivia &nbsp;·&nbsp; Tel. 4553737 · 71443907</div>
-
-<div id="page">
-
-{{-- ══ HEADER ══════════════════════════════════════════════════════════ --}}
-<table style="width:100%;border-collapse:collapse;background:#0b1626;">
-  <tr>
-    <td style="padding:10px {{ $PAD }}px 9px;">
-      <table style="width:100%;border-collapse:collapse;">
-        <tr>
-          <td style="vertical-align:middle;">
-            <table style="border-collapse:collapse;">
-              <tr>
-                @if($hasLogo)
-                <td style="padding-right:9px;vertical-align:middle;">
-                  <img src="{{ $logo }}" style="width:26px;height:26px;display:block;">
-                </td>
-                @endif
-                <td style="vertical-align:middle;">
-                  <div style="font-size:13px;font-weight:bold;color:#fff;">JAC Bolivia 2000</div>
-                  <div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px;">Orientación Vocacional · CHASIDE</div>
-                </td>
-              </tr>
-            </table>
-          </td>
-          <td style="text-align:right;vertical-align:middle;">
-            <div style="font-size:11px;color:rgba(255,255,255,.4);">Informe de Resultados</div>
-            <div style="font-size:11px;font-weight:bold;color:#c9a14a;margin-top:2px;">{{ $fecha }}</div>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<div style="height:4px;background:{{ $color }};"></div>
-<div style="height:2px;background:#c9a14a;"></div>
-
-{{-- ══ HERO ════════════════════════════════════════════════════════════ --}}
-<div style="padding:13px {{ $PAD }}px 11px;background:#fff;page-break-inside:avoid;">
-  <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-    <colgroup>
-      <col style="width:57%;">
-      <col style="width:43%;">
-    </colgroup>
-    <tr>
-      {{-- Datos del estudiante — columna fija al 57% para que el badge no se mueva --}}
-      <td style="vertical-align:middle;padding-right:14px;">
-        <div style="font-size:11px;font-weight:bold;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;margin-bottom:5px;">Estudiante</div>
-        <div style="font-size:24px;font-weight:bold;color:#0f172a;line-height:1.15;letter-spacing:-.2px;">{{ $nameL1 }}</div>
-        @if($nameL2)
-        <div style="font-size:24px;font-weight:bold;color:#0f172a;line-height:1.15;letter-spacing:-.2px;margin-top:2px;">{{ $nameL2 }}</div>
-        @endif
-        <div style="font-size:11px;color:#64748b;margin-top:6px;">
-          {{ $estudiante->sexo }} &nbsp;&middot;&nbsp; {{ $estudiante->edad }} años
-          @if(isset($estudiante->colegio) && $estudiante->colegio) &nbsp;&middot;&nbsp; {{ $estudiante->colegio->nombre }}@endif
-        </div>
-      </td>
-
-      {{-- Área dominante: info + badge --}}
-      <td style="vertical-align:middle;text-align:right;">
-        <table style="border-collapse:collapse;margin-left:auto;">
-          <tr>
-            {{-- Texto informativo a la derecha del badge --}}
-            <td style="vertical-align:middle;text-align:right;padding-right:13px;">
-              <div style="font-size:11px;font-weight:bold;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">Área Dominante</div>
-              <div style="font-size:16px;font-weight:bold;color:#0f172a;margin-bottom:7px;">{{ $areaP['nombre'] }}</div>
-              {{-- Segunda área sin puntaje fraccionado --}}
-              <div style="font-size:11px;color:#64748b;">Segunda área con mayor afinidad:</div>
-              <div style="font-size:11px;font-weight:bold;color:#334155;margin-top:1px;">{{ $areaS['nombre'] }}</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:1px;">{{ $pctSec }}% de afinidad</div>
-            </td>
-            {{-- Badge: solo porcentaje + etiqueta --}}
-            <td style="vertical-align:middle;">
-              <div style="width:80px;background:{{ $color }};text-align:center;padding:14px 4px 12px;border-radius:5px;">
-                <div style="font-size:33px;font-weight:bold;color:{{ $onColor }};line-height:1;letter-spacing:-1px;">{{ $pctPrincipal }}%</div>
-                <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:5px;line-height:1.3;">{{ $afinidad }}</div>
-              </div>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</div>
-<div style="height:1px;background:#e2e8f0;"></div>
-
-{{-- ══ PERFIL VOCACIONAL (ancho completo) ══════════════════════════════ --}}
-<div style="padding:10px {{ $PAD }}px 10px;page-break-inside:avoid;">
-  <table style="border-collapse:collapse;margin-bottom:7px;">
-    <tr>
-      <td style="width:3px;background:{{ $color }};padding:0;"></td>
-      <td style="padding-left:8px;">
-        <div style="font-size:12px;font-weight:bold;color:#0f172a;text-transform:uppercase;letter-spacing:1px;">Perfil Vocacional</div>
-      </td>
-    </tr>
-  </table>
-  <div style="background:{{ $pale }};border-left:3px solid {{ $color }};padding:9px 14px;">
-    <div style="font-size:11px;color:#1e3a5f;line-height:1.7;font-style:italic;">{{ $txt[$principal] }}</div>
+<div class="top">
+  <div class="brand">
+    <div class="brand-left">
+      @if($hasLogo)<img src="{{ $logo }}" class="logo">@endif
+      <div class="brand-title">JAC Bolivia 2000<div class="brand-sub">Orientación Vocacional CHASIDE</div></div>
+    </div>
+    <div class="brand-right">Informe de Resultados<br>{{ $fecha }}</div>
   </div>
 </div>
-<div style="height:1px;background:#e2e8f0;"></div>
 
-{{-- ══ PUNTAJES POR ÁREA (ancho completo, grid 3 col perfectamente alineado) ══ --}}
-<div style="padding:10px {{ $PAD }}px 10px;page-break-inside:avoid;">
-  <table style="border-collapse:collapse;margin-bottom:8px;">
-    <tr>
-      <td style="width:3px;background:{{ $color }};padding:0;"></td>
-      <td style="padding-left:8px;">
-        <div style="font-size:12px;font-weight:bold;color:#0f172a;text-transform:uppercase;letter-spacing:1px;">Puntajes por Área</div>
-      </td>
-    </tr>
-  </table>
-
-  {{-- Grilla fija: [nombre 170px] [barra auto] [porcentaje 34px] --}}
-  <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
-    <colgroup>
-      <col style="width:170px;">
-      <col>
-      <col style="width:34px;">
-    </colgroup>
-    @foreach($ordenAreas as $l)
-      @php
-        $isTop    = ($l === $principal);
-        $isSec    = ($l === $secundaria);
-        $pts      = $puntajes[$l];
-        $pct      = round(($pts / 14) * 100);
-        $colBar   = $areas[$l]['color'];
-        $opBar    = $isTop ? '1' : ($isSec ? '0.55' : '0.28');
-        $bH       = $isTop ? 11 : 8;
-        $rowPad   = $isTop ? '4px' : '3px';
-        /* Colores de texto según relevancia */
-        $lblColor = $isTop ? '#0f172a' : ($isSec ? '#334155' : '#64748b');
-        $pctColor = $isTop ? $colBar   : ($isSec ? '#475569' : '#64748b');
-        $fw       = ($isTop || $isSec) ? 'bold' : 'normal';
-        $nameFull = $areas[$l]['nombre'];
-      @endphp
+<div class="page">
+  <div class="hero">
+    <table class="hero-table">
       <tr>
-        {{-- Col 1: indicador de color + nombre completo --}}
-        <td style="padding:{{ $rowPad }} 6px {{ $rowPad }} 0;vertical-align:middle;">
-          <table style="width:100%;border-collapse:collapse;">
-            <tr>
-              <td style="width:12px;vertical-align:middle;">
-                <div style="width:12px;height:12px;background:{{ $colBar }};border-radius:2px;"></div>
-              </td>
-              <td style="padding-left:6px;vertical-align:middle;">
-                <div style="font-size:11px;font-weight:{{ $fw }};color:{{ $lblColor }};">{{ $nameFull }}</div>
-              </td>
-            </tr>
-          </table>
-        </td>
-        {{-- Col 2: barra --}}
-        <td style="padding:{{ $rowPad }} 3px {{ $rowPad }} 0;vertical-align:middle;">
-          <div style="height:{{ $bH }}px;background:#f1f5f9;border-radius:3px;">
-            <div style="height:{{ $bH }}px;background:{{ $colBar }};opacity:{{ $opBar }};border-radius:3px;width:{{ $pct }}%;"></div>
+        <td class="hero-main">
+          <div class="eyebrow">Estudiante</div>
+          <div class="student">{{ $estudiante->nombre_completo }}</div>
+          <div class="meta">
+            {{ $estudiante->sexo }} · {{ $estudiante->edad }} años
+            @if($colegioNombre)<br>{{ $colegioNombre }}@endif
           </div>
+          <span class="pill">Área dominante: {{ $areaP['nombre'] }}</span>
         </td>
-        {{-- Col 3: porcentaje únicamente --}}
-        <td style="padding:{{ $rowPad }} 0;text-align:right;vertical-align:middle;">
-          <span style="font-size:11px;font-weight:{{ $fw }};color:{{ $pctColor }};">{{ $pct }}%</span>
+        <td class="hero-score">
+          <div class="score-big">{{ $pctPrincipal }}%</div>
+          <div class="score-label">{{ $afinidad }}</div>
+          <div style="color:#64748b;margin-top:5px">{{ $puntajes[$principal] }} de 14 puntos</div>
         </td>
       </tr>
+    </table>
+  </div>
+
+  <div class="career-box">
+    <div class="career-title">Carrera sugerida principal</div>
+    <div class="career">{{ $carreraPrincipal }}</div>
+  </div>
+
+  @if(count($carrerasCompatibles))
+  <div class="related">
+    <div class="title">Otras carreras compatibles</div>
+    @foreach($carrerasCompatibles as $carrera)
+      <span>{{ $carrera }}</span>
     @endforeach
-  </table>
-</div>
-<div style="height:1px;background:#e2e8f0;"></div>
+  </div>
+  @endif
 
-{{-- ══ INTERESES Y APTITUDES ════════════════════════════════════════════ --}}
-<div style="padding:10px {{ $PAD }}px 10px;page-break-inside:avoid;">
-  <table style="border-collapse:collapse;margin-bottom:8px;">
+  <table class="grid">
     <tr>
-      <td style="width:3px;background:#c9a14a;padding:0;"></td>
-      <td style="padding-left:8px;">
-        <div style="font-size:12px;font-weight:bold;color:#0f172a;text-transform:uppercase;letter-spacing:1px;">Intereses y Aptitudes</div>
-      </td>
-    </tr>
-  </table>
-
-  <table style="width:100%;border-collapse:collapse;">
-    <tr>
-      {{-- INTERESES --}}
-      <td style="width:50%;vertical-align:top;padding-right:7px;">
-        <div style="border-top:3px solid {{ $color }};border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:10px 12px;">
-          <div style="font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:{{ $color }};margin-bottom:8px;">Intereses</div>
-          @foreach($areaP['intereses'] as $it)
-            <table style="width:100%;border-collapse:collapse;margin-bottom:5px;">
-              <tr>
-                <td style="width:14px;vertical-align:middle;">
-                  <div style="width:14px;height:14px;background:{{ $color }};border-radius:2px;display:table;">
-                    <div style="display:table-cell;text-align:center;vertical-align:middle;font-size:9px;color:#fff;font-weight:bold;line-height:1;">&#10003;</div>
-                  </div>
-                </td>
-                <td style="vertical-align:middle;padding-left:6px;">
-                  <div style="font-size:11px;color:#1e293b;line-height:1.4;">{{ $it }}</div>
-                </td>
-              </tr>
-            </table>
-          @endforeach
+      <td class="col" style="padding-right:8px">
+        <div class="box">
+          <div class="title">Perfil vocacional</div>
+          <div class="copy">{{ $descripciones[$principal] }}</div>
         </div>
       </td>
-      {{-- APTITUDES --}}
-      <td style="width:50%;vertical-align:top;padding-left:7px;">
-        <div style="border-top:3px solid #c9a14a;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:10px 12px;">
-          <div style="font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:#c9a14a;margin-bottom:8px;">Aptitudes</div>
-          @foreach($areaP['aptitudes'] as $it)
-            <table style="width:100%;border-collapse:collapse;margin-bottom:5px;">
-              <tr>
-                <td style="width:14px;vertical-align:middle;">
-                  <div style="width:14px;height:14px;background:#c9a14a;border-radius:2px;display:table;">
-                    <div style="display:table-cell;text-align:center;vertical-align:middle;font-size:9px;color:#fff;font-weight:bold;line-height:1;">&#10003;</div>
-                  </div>
-                </td>
-                <td style="vertical-align:middle;padding-left:6px;">
-                  <div style="font-size:11px;color:#1e293b;line-height:1.4;">{{ $it }}</div>
-                </td>
-              </tr>
-            </table>
-          @endforeach
+      <td class="col" style="padding-left:8px">
+        <div class="box gold">
+          <div class="title">Recomendación de preparación</div>
+          <div class="copy">{{ $recomendaciones[$principal] }}</div>
         </div>
       </td>
     </tr>
   </table>
-</div>
-<div style="height:1px;background:#e2e8f0;"></div>
 
-{{-- ══ CARRERAS RECOMENDADAS ════════════════════════════════════════════ --}}
-<div style="padding:10px {{ $PAD }}px 12px;page-break-inside:avoid;">
-  <table style="border-collapse:collapse;margin-bottom:8px;">
+  <table class="grid">
     <tr>
-      <td style="width:3px;background:#c9a14a;padding:0;"></td>
-      <td style="padding-left:8px;">
-        <div style="font-size:12px;font-weight:bold;color:#0f172a;text-transform:uppercase;letter-spacing:1px;">Carreras Recomendadas</div>
+      <td class="col" style="padding-right:8px">
+        <div class="box">
+          <div class="title">Intereses destacados</div>
+          <ul class="list">
+            @foreach($areaP['intereses'] as $item)<li>{{ $item }}</li>@endforeach
+          </ul>
+        </div>
+      </td>
+      <td class="col" style="padding-left:8px">
+        <div class="box gold">
+          <div class="title">Aptitudes destacadas</div>
+          <ul class="list">
+            @foreach($areaP['aptitudes'] as $item)<li>{{ $item }}</li>@endforeach
+          </ul>
+        </div>
       </td>
     </tr>
   </table>
 
-  <table style="width:100%;border-collapse:collapse;">
-    <tr>
-      <td style="width:50%;vertical-align:top;padding-right:6px;">
-        @foreach(array_slice($areaP['carreras'],0,$half) as $i=>$c)
-          <table style="width:100%;border-collapse:collapse;margin-bottom:5px;">
-            <tr>
-              <td style="border-left:4px solid #c9a14a;border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:5px 10px;vertical-align:middle;">
-                <span style="font-size:11px;font-weight:bold;color:#c9a14a;">{{ str_pad($i+1,2,'0',STR_PAD_LEFT) }}</span>
-                <span style="font-size:11px;color:#1e293b;margin-left:8px;">{{ $c }}</span>
-              </td>
-            </tr>
-          </table>
-        @endforeach
-      </td>
-      <td style="width:50%;vertical-align:top;padding-left:6px;">
-        @foreach(array_slice($areaP['carreras'],$half) as $i=>$c)
-          <table style="width:100%;border-collapse:collapse;margin-bottom:5px;">
-            <tr>
-              <td style="border-left:4px solid #c9a14a;border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:5px 10px;vertical-align:middle;">
-                <span style="font-size:11px;font-weight:bold;color:#c9a14a;">{{ str_pad($i+$half+1,2,'0',STR_PAD_LEFT) }}</span>
-                <span style="font-size:11px;color:#1e293b;margin-left:8px;">{{ $c }}</span>
-              </td>
-            </tr>
-          </table>
-        @endforeach
-      </td>
-    </tr>
-  </table>
-  <div style="margin-top:9px;padding-top:8px;border-top:1px solid #f1f5f9;">
-    <div style="font-size:11px;font-weight:bold;color:{{ $color }};letter-spacing:.3px;margin-bottom:4px;">&#9733;&nbsp;Tu mayor fortaleza</div>
-    <div style="font-size:11px;color:#334155;line-height:1.65;">{{ $frase }}</div>
+  <div class="scores">
+    <div class="title">Puntajes por área</div>
+    <table class="score-table">
+      @foreach($orden as $key)
+        @php
+          $pct = (int) round(($puntajes[$key] / 14) * 100);
+          $barColor = $areas[$key]['color'];
+          $weight = $key === $principal ? '700' : '400';
+        @endphp
+        <tr>
+          <td class="score-name"><span class="dot" style="background:{{ $barColor }}"></span>{{ $areas[$key]['nombre'] }}</td>
+          <td><div class="bar"><div style="width:{{ $pct }}%;background:{{ $barColor }}"></div></div></td>
+          <td class="score-pct" style="font-weight:{{ $weight }}">{{ $pct }}%</td>
+        </tr>
+      @endforeach
+    </table>
+  </div>
+
+  <div class="note">
+    <b>Interpretación:</b> el resultado orienta principalmente hacia <b>{{ $carreraPrincipal }}</b>, manteniendo como segunda línea de afinidad el área de <b>{{ $areaS['nombre'] }}</b>. La elección final debe complementarse con entrevista, rendimiento académico e intereses personales.
   </div>
 </div>
 
-</div>
+<div class="footer">JAC Bolivia 2000 · Av. San Martín esq. Brasil, Ed. Pruber 901 · Cochabamba, Bolivia · Tel. 4553737 · 7144390</div>
 </body>
 </html>

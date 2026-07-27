@@ -44,15 +44,21 @@ class AdminController extends Controller
 
     public function dashboard(): View
     {
-        $colegios = Colegio::withCount([
-            'estudiantes',
-            'estudiantes as completados_count' => fn($q) => $q->whereHas('resultados'),
-        ])
+        $colegios = Colegio::whereHas('estudiantes')
+            ->withCount([
+                'estudiantes',
+                'estudiantes as completados_count' => fn($q) => $q->whereHas('resultados'),
+            ])
             ->withMax('estudiantes', 'created_at')
-            ->having('estudiantes_count', '>', 0)
             ->orderByDesc('estudiantes_count')
             ->orderBy('nombre')
             ->get();
+
+        $sinColegio = [
+            'total'       => Estudiante::whereNull('colegio_id')->count(),
+            'completados' => Estudiante::whereNull('colegio_id')->whereHas('resultados')->count(),
+            'ultimo'      => Estudiante::whereNull('colegio_id')->max('created_at'),
+        ];
 
         $stats = [
             'total'       => Estudiante::count(),
@@ -68,14 +74,23 @@ class AdminController extends Controller
                 'url'    => route('admin.colegios.ver', $c->id),
             ]);
 
-        return view('admin.dashboard', compact('colegios', 'stats', 'todosColegios'));
+        return view('admin.dashboard', compact('colegios', 'stats', 'todosColegios', 'sinColegio'));
     }
 
     public function crearColegio(Request $request): RedirectResponse
     {
         $request->validate(['nombre' => 'required|string|min:2|max:150']);
-        Colegio::create(['nombre' => trim($request->input('nombre'))]);
-        return back()->with('success', 'Colegio creado correctamente.');
+
+        $nombre = trim((string) $request->input('nombre'));
+        $colegio = Colegio::firstOrCreate(['nombre' => $nombre]);
+
+        $mensaje = $colegio->wasRecentlyCreated
+            ? 'Colegio creado correctamente. Ya puedes copiar su enlace de registro.'
+            : 'El colegio ya existia. Te lleve a su enlace de registro.';
+
+        return redirect()
+            ->route('admin.colegios.ver', $colegio->id)
+            ->with('success', $mensaje);
     }
 
     public function eliminarColegio(Request $request, int $id): RedirectResponse

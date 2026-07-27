@@ -13,8 +13,8 @@
     <div>
       <h1 class="font-display font-extrabold text-ink text-2xl sm:text-3xl leading-tight">Colegios</h1>
       <p class="text-slate-400 text-sm mt-0.5">
-        {{ $colegios->count() }} {{ $colegios->count() === 1 ? 'colegio' : 'colegios' }} con estudiantes
-        · <span class="font-semibold text-slate-600">{{ $colegios->sum('estudiantes_count') }}</span> registros
+        {{ $colegios->count() }} {{ $colegios->count() === 1 ? 'colegio registrado' : 'colegios registrados' }}
+        · <span class="font-semibold text-slate-600">{{ $stats['total'] }}</span> registros de estudiantes
       </p>
     </div>
     <button @click="abierto = !abierto; if (!abierto) cerrar()"
@@ -128,15 +128,15 @@
 @endif
 
 {{-- Lista de colegios --}}
-@if ($colegios->isEmpty())
+@if ($colegios->isEmpty() && $sinColegio['total'] === 0)
   <div class="rounded-3xl border-2 border-dashed border-slate-200 py-16 text-center">
     <div class="w-16 h-16 rounded-2xl bg-slate-100 grid place-items-center mx-auto mb-4">
       <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
       </svg>
     </div>
-    <p class="font-semibold text-slate-500">Aún no hay estudiantes registrados.</p>
-    <p class="text-sm text-slate-400 mt-1">Los colegios aparecerán aquí cuando los alumnos completen su ficha.</p>
+    <p class="font-semibold text-slate-500">Aún no hay colegios registrados.</p>
+    <p class="text-sm text-slate-400 mt-1">Crea un colegio para generar su enlace de registro.</p>
   </div>
 
 @else
@@ -154,6 +154,38 @@
 
     {{-- Grid de colegios --}}
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      @if ($sinColegio['total'] > 0)
+        <a href="{{ route('admin.sin_colegio') }}"
+           x-show="!q || 'sin colegio asignado'.includes(q.toLowerCase())"
+           class="group bg-white rounded-2xl border border-amber-100 shadow-sm hover:shadow-md hover:border-amber-200 hover:-translate-y-0.5 transition-all p-4 flex flex-col gap-3 min-h-0">
+          <div class="flex items-start gap-3">
+            <div class="grid place-items-center w-8 h-8 rounded-lg bg-amber-50 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-colors shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/>
+              </svg>
+            </div>
+            <h2 class="font-semibold text-ink text-sm leading-snug group-hover:text-amber-600 transition-colors line-clamp-2 flex-1">
+              Sin colegio asignado
+            </h2>
+          </div>
+
+          <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+            <div>
+              <p class="text-sm font-semibold text-ink">
+                {{ $sinColegio['total'] }}
+                <span class="font-normal text-slate-500">{{ $sinColegio['total'] === 1 ? 'estudiante' : 'estudiantes' }}</span>
+              </p>
+              @if ($sinColegio['ultimo'])
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                  Último: {{ \Carbon\Carbon::parse($sinColegio['ultimo'])->diffForHumans() }}
+                </p>
+              @endif
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400 group-hover:text-amber-600 transition-colors whitespace-nowrap">Ver →</span>
+          </div>
+        </a>
+      @endif
+
       @foreach ($colegios as $col)
       <div class="relative" x-data="{confirmar: false, menu: false}"
            x-show="!q || '{{ addslashes(mb_strtolower($col->nombre)) }}'.includes(q.toLowerCase())">

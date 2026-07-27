@@ -112,7 +112,7 @@
         {{-- Nombre --}}
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre <span class="text-rose-500">*</span></label>
-          <input name="nombre" data-field="nombre" value="{{ old('nombre') }}" maxlength="40" placeholder="Erika Maria"
+          <input name="nombre" data-field="nombre" value="{{ old('nombre') }}" maxlength="35" placeholder="Erika Maria"
                  @blur="validar('nombre', $el.value)"
                  @input="if(errores.nombre) validar('nombre', $el.value)"
                  :class="errores.nombre ? 'border-rose-400 ring-2 ring-rose-400/20' : ''"
@@ -124,7 +124,7 @@
         {{-- Apellido --}}
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Apellido <span class="text-rose-500">*</span></label>
-          <input name="apellido" data-field="apellido" value="{{ old('apellido') }}" maxlength="50" placeholder="Pérez Calvimontes"
+          <input name="apellido" data-field="apellido" value="{{ old('apellido') }}" maxlength="40" placeholder="Pérez Calvimontes"
                  @blur="validar('apellido', $el.value)"
                  @input="if(errores.apellido) validar('apellido', $el.value)"
                  :class="errores.apellido ? 'border-rose-400 ring-2 ring-rose-400/20' : ''"
@@ -180,7 +180,7 @@
         {{-- Celular --}}
         <div>
           <label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular <span class="text-rose-500">*</span></label>
-          <input name="celular" data-field="celular" value="{{ old('celular') }}" maxlength="15" inputmode="numeric" placeholder="Ej: 76543210"
+          <input name="celular" data-field="celular" value="{{ old('celular') }}" maxlength="12" inputmode="numeric" placeholder="Ej: 76543210"
                  @blur="validar('celular', $el.value)"
                  @input="if(errores.celular) validar('celular', $el.value)"
                  :class="errores.celular ? 'border-rose-400 ring-2 ring-rose-400/20' : ''"
@@ -210,9 +210,9 @@
       </div>
       <div class="grid sm:grid-cols-2 gap-4">
         <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre de la madre</label><input name="nombre_madre" value="{{ old('nombre_madre') }}" maxlength="60" placeholder="Nombre completo" class="{{ $inputCls }}"></div>
-        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular de la madre</label><input name="celular_madre" value="{{ old('celular_madre') }}" maxlength="15" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}"></div>
+        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular de la madre</label><input name="celular_madre" value="{{ old('celular_madre') }}" maxlength="12" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}"></div>
         <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre del padre</label><input name="nombre_padre" value="{{ old('nombre_padre') }}" maxlength="60" placeholder="Nombre completo" class="{{ $inputCls }}"></div>
-        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular del padre</label><input name="celular_padre" value="{{ old('celular_padre') }}" maxlength="15" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}"></div>
+        <div><label class="block text-sm font-semibold text-slate-600 mb-1.5">Celular del padre</label><input name="celular_padre" value="{{ old('celular_padre') }}" maxlength="12" placeholder="+591 7XXXXXXX" class="{{ $inputCls }}"></div>
       </div>
     </div>
 
@@ -242,17 +242,23 @@ document.addEventListener('alpine:init', () => {
                 case 'nombre': {
                     if (!v) return 'Por favor ingresa tu nombre.';
                     if (v.length < 2) return 'El nombre debe tener al menos 2 caracteres.';
-                    if (v.length > 40) return 'El nombre no puede superar los 40 caracteres.';
+                    if (v.length > 35) return 'El nombre no puede superar los 35 caracteres.';
                     const palabrasNombre = v.split(/\s+/).filter(p => p.length > 0);
                     if (palabrasNombre.length > 4) return 'El nombre no puede tener más de 4 palabras.';
+                    if (palabrasNombre.some(p => p.length > 18)) return 'Hay una palabra demasiado larga.';
+                    if (palabrasNombre.some(p => /([a-záéíóúüñ])\1{3,}/i.test(p))) return 'No repitas la misma letra muchas veces.';
+                    if (!/^[a-záéíóúüñ .'-]+$/i.test(v)) return 'El nombre solo puede contener letras.';
                     return '';
                 }
                 case 'apellido': {
                     if (!v) return 'Por favor ingresa tu apellido.';
                     if (v.length < 2) return 'El apellido debe tener al menos 2 caracteres.';
-                    if (v.length > 50) return 'El apellido no puede superar los 50 caracteres.';
+                    if (v.length > 40) return 'El apellido no puede superar los 40 caracteres.';
                     const palabrasApellido = v.split(/\s+/).filter(p => p.length > 0);
-                    if (palabrasApellido.length > 2) return 'El apellido no puede tener más de 2 palabras.';
+                    if (palabrasApellido.length > 4) return 'El apellido no puede tener más de 4 palabras.';
+                    if (palabrasApellido.some(p => p.length > 18)) return 'Hay una palabra demasiado larga.';
+                    if (palabrasApellido.some(p => /([a-záéíóúüñ])\1{3,}/i.test(p))) return 'No repitas la misma letra muchas veces.';
+                    if (!/^[a-záéíóúüñ .'-]+$/i.test(v)) return 'El apellido solo puede contener letras.';
                     return '';
                 }
                 case 'sexo':
@@ -266,7 +272,7 @@ document.addEventListener('alpine:init', () => {
                 case 'celular':
                     if (!v) return 'Por favor ingresa tu número de celular.';
                     if (v.length < 7) return 'Ingresa un número de celular válido.';
-                    if (v.length > 15) return 'El número de celular es demasiado largo.';
+                    if (v.length > 12) return 'El número de celular es demasiado largo.';
                     return '';
             }
             return '';

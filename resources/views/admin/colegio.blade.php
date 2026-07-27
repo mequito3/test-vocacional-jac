@@ -118,7 +118,7 @@
               </div>
             @else
               <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-700 text-xs font-semibold px-2.5 py-1 border border-amber-200">
-                Pendiente
+                No terminó el test
               </span>
             @endif
           </div>
@@ -209,7 +209,7 @@
             @elseif ($resultado)
               <span class="text-xs text-slate-400 italic">Sin enlace</span>
             @else
-              <span class="text-xs text-slate-300">—</span>
+              <span class="text-xs text-slate-400">Sin resultado</span>
             @endif
             </div>{{-- fin acciones --}}
 

@@ -12,7 +12,7 @@ class ShareController extends Controller
 {
     public function ver(string $token): View
     {
-        $resultado = ResultadoChaside::with('estudiante')
+        $resultado = ResultadoChaside::with('estudiante.colegio')
             ->where('share_token', $token)
             ->firstOrFail();
 
@@ -33,7 +33,7 @@ class ShareController extends Controller
 
     public function pdf(string $token)
     {
-        $resultado = ResultadoChaside::with('estudiante')
+        $resultado = ResultadoChaside::with('estudiante.colegio')
             ->where('share_token', $token)
             ->firstOrFail();
 

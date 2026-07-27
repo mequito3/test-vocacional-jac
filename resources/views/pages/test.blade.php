@@ -95,6 +95,8 @@
     </template>
   </div>
 
+  <p x-show="errorEnvio" x-cloak x-text="errorEnvio" class="text-center text-sm font-semibold text-rose-600 mt-4"></p>
+  <p x-show="enviando" x-cloak class="text-center text-sm font-semibold text-navy-700 mt-4">Guardando tus respuestas...</p>
   <p class="text-center text-xs text-slate-400 mt-4">Responde con sinceridad. No hay respuestas correctas ni incorrectas.</p>
 
   {{-- BOTÓN DE PRUEBA: visible solo si ENABLE_TEST_BUTTON=true en .env --}}
@@ -124,6 +126,8 @@
             current: 0,
             answers: {},
             modalFin: false,
+            enviando: false,
+            errorEnvio: '',
             storageKey: 'chaside_test_' + estudianteId,
             init() {
                 this.restaurar();
@@ -151,11 +155,36 @@
                 try { localStorage.removeItem(this.storageKey); } catch (e) {}
             },
             async enviarResultados() {
+                if (this.enviando) return false;
+
+                this.enviando = true;
+                this.errorEnvio = '';
                 const token = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
                 const fd = new FormData();
                 fd.append('_token', token);
                 this.preguntas.forEach(p => fd.append(`respuestas[${p.n}]`, this.answers[p.n] ? 1 : 0));
-                try { await fetch('{{ route("resultado.calcular") }}', { method: 'POST', body: fd }); } catch(e) {}
+
+                try {
+                    const response = await fetch('{{ route("resultado.calcular") }}', {
+                        method: 'POST',
+                        body: fd,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    if (!response.ok) throw new Error('No se pudo guardar el resultado.');
+
+                    this.limpiarGuardado();
+                    this.modalFin = true;
+                    return true;
+                } catch (e) {
+                    this.errorEnvio = 'No se pudo guardar tu test. Revisa tu conexion e intenta otra vez.';
+                    return false;
+                } finally {
+                    this.enviando = false;
+                }
             },
             flashPregunta() {
                 const el = this.$refs.qbox;
@@ -179,11 +208,7 @@
                 if (siguiente !== -1) {
                     setTimeout(() => { this.current = siguiente; }, 400);
                 } else {
-                    setTimeout(() => {
-                        this.limpiarGuardado();
-                        this.enviarResultados();
-                        this.modalFin = true;
-                    }, 550);
+                    setTimeout(() => { this.enviarResultados(); }, 550);
                 }
             },
             anterior() { if (this.current > 0) this.current--; },
@@ -195,9 +220,7 @@
             llenarAlAzar() {
                 this.preguntas.forEach(p => { this.answers[p.n] = Math.random() < 0.5; });
                 this.persistir();
-                this.limpiarGuardado();
                 this.enviarResultados();
-                this.modalFin = true;
             },
         }));
     });
