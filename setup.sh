@@ -86,19 +86,15 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# public_html pasa a contener exclusivamente el contenido de public/. Se conserva
-# .well-known porque Hostinger puede usarlo para validaciones SSL.
-rsync -a --delete \
-    --exclude='/.well-known/' \
-    --exclude='/test/' \
-    "$APP_ROOT/public/" "$PUBLIC_ROOT/"
-
+# El test vocacional se publica solo en el subdominio /test. No se sincroniza
+# contra public_html raiz porque ahi viven otros subdominios y la futura pagina
+# institucional.
 mkdir -p "$TEST_PUBLIC_ROOT"
 rsync -a --delete \
     --exclude='/.well-known/' \
     "$APP_ROOT/public/" "$TEST_PUBLIC_ROOT/"
 
-# Elimina restos sensibles conocidos del esquema de despliegue anterior.
-rm -f "$PUBLIC_ROOT/.env" "$PUBLIC_ROOT/diag.txt" "$PUBLIC_ROOT/setup.sh"
+# Elimina restos sensibles conocidos solo dentro del despliegue del test.
+rm -f "$TEST_PUBLIC_ROOT/.env" "$TEST_PUBLIC_ROOT/diag.txt" "$TEST_PUBLIC_ROOT/setup.sh"
 
-echo "Deploy terminado: Laravel esta en $APP_ROOT y solo public/ esta en la web."
+echo "Deploy terminado: Laravel esta en $APP_ROOT y el test se publico en $TEST_PUBLIC_ROOT."
