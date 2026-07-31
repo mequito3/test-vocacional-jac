@@ -67,13 +67,13 @@ class TestController extends Controller
     }
 
     /**
-     * Enlace de grupo: guarda el colegio en sesion y redirige a bienvenida.
+     * Enlace de grupo: guarda el colegio en sesion y redirige al registro.
      */
     public function grupo(Request $request, string $token): RedirectResponse
     {
         $colegio = Colegio::where('token', $token)->firstOrFail();
         $request->session()->put('colegio_id', $colegio->id);
-        return redirect()->route('welcome');
+        return redirect()->route('registro');
     }
 
     /**

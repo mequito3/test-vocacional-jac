@@ -107,7 +107,7 @@ class EstudianteFlowTest extends TestCase
         $colegio = Colegio::factory()->create(['token' => 'abc123abc123']);
 
         $this->get(route('grupo', 'abc123abc123'))
-            ->assertRedirect(route('welcome'))
+            ->assertRedirect(route('registro'))
             ->assertSessionHas('colegio_id', $colegio->id);
     }
 
