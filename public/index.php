@@ -6,20 +6,19 @@ use Illuminate\Http\Request;
 define('LARAVEL_START', microtime(true));
 
 // En local, Laravel vive un nivel arriba de public/. En Hostinger, el
-// contenido de public/ se copia a public_html y la aplicacion queda privada
-// fuera de public_html, visible desde el File Manager como jac_app.
+// contenido de public/ se copia a public_html/test y la aplicacion queda
+// privada fuera de public_html.
 $appRoot = dirname(__DIR__);
-if (! file_exists($appRoot.'/vendor/autoload.php')) {
-    foreach ([
-        dirname(__DIR__).'/jac_app',
-        dirname(__DIR__, 2).'/jac_app',
-        dirname(__DIR__, 3).'/jac',
-        dirname(__DIR__, 4).'/jac',
-    ] as $candidateRoot) {
-        if (file_exists($candidateRoot.'/vendor/autoload.php')) {
-            $appRoot = $candidateRoot;
-            break;
-        }
+foreach ([
+    dirname(__DIR__).'/jac_app',
+    dirname(__DIR__, 2).'/jac_app',
+    dirname(__DIR__, 3).'/jac',
+    dirname(__DIR__, 4).'/jac',
+] as $candidateRoot) {
+    if (file_exists($candidateRoot.'/vendor/autoload.php')
+        && file_exists($candidateRoot.'/.env')) {
+        $appRoot = $candidateRoot;
+        break;
     }
 }
 
