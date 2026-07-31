@@ -192,7 +192,7 @@
                           @click="enviarWAMensaje(
                               {{ \Illuminate\Support\Js::from($e->celular) }},
                               {{ \Illuminate\Support\Js::from($e->nombre_completo) }},
-                              {{ \Illuminate\Support\Js::from($modalData['share_url']) }},
+                              {{ \Illuminate\Support\Js::from($modalData['pdf_url']) }},
                               {{ \Illuminate\Support\Js::from($area['nombre']) }}
                           ); menu = false"
                           class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-[#128C7E] hover:bg-emerald-50 transition-colors">
@@ -374,7 +374,7 @@
 
         {{-- Fila 2: WhatsApp con mensaje directo al número del estudiante --}}
         <button type="button"
-                @click="enviarWAMensaje(modal.data.celular, modal.data.nombre, modal.data.share_url, modal.data.areaP.nombre)"
+                @click="enviarWAMensaje(modal.data.celular, modal.data.nombre, modal.data.pdf_url, modal.data.areaP.nombre)"
                 :disabled="!modal.data.celular"
                 :title="modal.data.celular ? 'Abrir WhatsApp con mensaje listo para ' + modal.data.celular : 'Este estudiante no registró su número'"
                 :class="modal.data.celular
@@ -448,7 +448,7 @@ document.addEventListener('alpine:init', () => {
             document.body.style.overflow = '';
         },
 
-        enviarWAMensaje(celular, nombre, shareUrl, areaNombre) {
+        enviarWAMensaje(celular, nombre, pdfUrl, areaNombre) {
             const limpio = celular.replace(/\D/g, '');
             const numero = limpio.length <= 8 ? '591' + limpio : limpio;
             const texto = [
@@ -462,8 +462,8 @@ document.addEventListener('alpine:init', () => {
                 ``,
                 `Tu informe personalizado contiene recomendaciones académicas, análisis de áreas de interés y carreras relacionadas con tu perfil.`,
                 ``,
-                `*Acceder al informe:*`,
-                shareUrl,
+                `*Descargar informe PDF:*`,
+                pdfUrl,
                 ``,
                 `Recuerda que este resultado es una guía para ayudarte a descubrir las áreas donde podrías desarrollarte con mayor facilidad y satisfacción.`,
                 ``,
