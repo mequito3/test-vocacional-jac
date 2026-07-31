@@ -10,10 +10,10 @@ define('LARAVEL_START', microtime(true));
 // privada fuera de public_html.
 $appRoot = dirname(__DIR__);
 foreach ([
-    dirname(__DIR__).'/jac_app',
-    dirname(__DIR__, 2).'/jac_app',
-    dirname(__DIR__, 3).'/jac',
     dirname(__DIR__, 4).'/jac',
+    dirname(__DIR__, 3).'/jac',
+    dirname(__DIR__, 2).'/jac_app',
+    dirname(__DIR__).'/jac_app',
 ] as $candidateRoot) {
     if (file_exists($candidateRoot.'/vendor/autoload.php')
         && file_exists($candidateRoot.'/.env')) {
